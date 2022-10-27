@@ -2,13 +2,13 @@ version: '3.8'
 
 services:
 
-  teachteam-mysql-db:
+  umweltrechner-mysql-db:
     image: mysql:8.0
-    container_name: teachteam-mysql-db
+    container_name: umweltrechner-mysql-db
     ports:
       - "3312:3306"
     environment:
       MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_USER: techteam
+      MYSQL_USER: umweltrechner
       MYSQL_PASSWORD: 123456Aa@
       MYSQL_ROOT_HOST: '%'

@@ -1,0 +1,18 @@
+version: '3.7'
+
+networks:
+  local:
+
+services:
+
+  db:
+    image: mysql:8.0.0
+    container_name: umweltrechner-mysql
+    networks:
+      - local
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: mysql
+      MYSQL_USER: mysql
+    ports:
+      - "3306:3306"

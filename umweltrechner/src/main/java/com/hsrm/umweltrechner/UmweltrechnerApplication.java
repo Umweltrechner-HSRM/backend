@@ -10,4 +10,5 @@ public class UmweltrechnerApplication {
 		SpringApplication.run(UmweltrechnerApplication.class, args);
 	}
 
+
 }

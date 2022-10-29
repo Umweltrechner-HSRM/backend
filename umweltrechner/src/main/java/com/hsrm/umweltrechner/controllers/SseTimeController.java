@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-public class TimeController {
+public class SseTimeController {
 
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
 

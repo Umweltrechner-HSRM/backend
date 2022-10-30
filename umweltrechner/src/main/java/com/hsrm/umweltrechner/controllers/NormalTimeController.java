@@ -1,5 +1,6 @@
 package com.hsrm.umweltrechner.controllers;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -20,6 +21,7 @@ public class NormalTimeController {
   @Data
   public static class TemperatureDto {
     private Integer temperature;
+    private ZonedDateTime time;
   }
 
   private final ConcurrentLinkedQueue<TemperatureDto> queue = new ConcurrentLinkedQueue<>();
@@ -30,10 +32,11 @@ public class NormalTimeController {
     return queue.peek();
   }
 
-  @Scheduled(fixedRate = 5000)
+  @Scheduled(fixedRate = 1000)
   public void addTime() {
     queue.poll();
     TemperatureDto temperatureDto = new TemperatureDto();
+    temperatureDto.setTime(ZonedDateTime.now());
     temperatureDto.setTemperature((int) (Math.random() * 100));
     queue.add(temperatureDto);
   }

@@ -2,6 +2,8 @@ package com.hsrm.umweltrechner.controllers;
 
 import java.time.ZonedDateTime;
 
+import javax.annotation.security.RolesAllowed;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -38,6 +40,7 @@ public class SensorDataControllerWS {
 
   @MessageMapping("/temperature")
   @SendTo("/topic/temperature")
+  @RolesAllowed("admin")
   public SensorData sendTemperature(SensorData sensorData) {
     return sensorData;
   }

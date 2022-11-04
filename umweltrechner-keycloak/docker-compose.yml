@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+
+  umweltrechner-backend-keycloak-mysql:
+    image: mysql:8.0
+    container_name: umweltrechner-keycloak-backend-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: password
+    ports:
+      - "3320:3306"
+    networks:
+      - umweltrechner-keycloak
+
+  keycloak:
+    image: jboss/keycloak
+    container_name: umweltrechner-keycloak-umweltrechner
+    depends_on:
+      - umweltrechner-backend-keycloak-mysql
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_BACKEND_URL: http://localhost:8084/auth
+      DB_VENDOR: MYSQL
+      DB_ADDR: umweltrechner-backend-keycloak-mysql
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+      KEYCLOAK_USER: develop
+      KEYCLOAK_PASSWORD: develop
+    ports:
+      - "8084:8080"
+    networks:
+      - umweltrechner-keycloak
+
+networks:
+  umweltrechner-keycloak:

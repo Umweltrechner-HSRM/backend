@@ -14,7 +14,7 @@ import lombok.Data;
 
 @Controller
 @EnableScheduling
-public class WSController {
+public class SensorDataControllerWS {
 
   @Autowired
   SimpMessagingTemplate template;

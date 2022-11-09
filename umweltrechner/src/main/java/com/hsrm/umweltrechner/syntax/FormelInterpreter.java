@@ -170,17 +170,11 @@ public class FormelInterpreter {
     // - term preceded by a sign (+/-)
     // - simple expression followed by adding operator (+/-) and another simple expression
     private double simple_expression(char ch) throws IncorrectSyntaxException, UnknownVariableException {
-        // Interpret for +/- sign before term
-        double s = 1;
-        if (ch == '+' || ch == '-') {
-            s = sign(ch);
-            ch = read();
-        }
+        double result = term(ch);
 
         // Interpret +/- signs used for addition/subtraction
-        double result = s * term(ch);
         ch = read();
-        if (ch == '+' || ch == '-') {
+        while (ch == '+' || ch == '-') {
             result = adding_operator(ch, result);
             ch = read();
         }
@@ -205,8 +199,8 @@ public class FormelInterpreter {
         char ch2 = ch;
         ch = next();
         while (ch == ' ') ch = next();
-        if (ch2 == '+' ) result = result + simple_expression(ch);
-        else result = result - simple_expression(ch);
+        if (ch2 == '+' ) result = result + term(ch);
+        else result = result - term(ch);
 
         return result;
     }
@@ -215,10 +209,17 @@ public class FormelInterpreter {
     // - factor
     // - factor followed by multiplying operator (* or /) and another term
     private double term(char ch) throws IncorrectSyntaxException, UnknownVariableException {
-        double result = factor(ch);
+        // Interpret for +/- sign before term
+        double s = 1;
+        if (ch == '+' || ch == '-') {
+            s = sign(ch);
+            ch = read();
+        }
+
+        double result = s * factor(ch);
 
         ch = read();
-        if (ch == '*' || ch == '/') {
+        while (ch == '*' || ch == '/') {
             result = multiplying_operator(ch, result);
             ch = read();
         }
@@ -232,8 +233,8 @@ public class FormelInterpreter {
         char ch2 = ch;
         ch = next();
         while (ch == ' ') ch = next();
-        if (ch2 == '*') result = result * term(ch);
-        else result = result / term(ch);
+        if (ch2 == '*') result = result * factor(ch);
+        else result = result / factor(ch);
 
         return result;
     }
@@ -254,6 +255,7 @@ public class FormelInterpreter {
             // If the first character is a opening parenthesis, it's an enclosed expression
         else if (ch == '(') {
             ch = next();
+            while (ch == ' ') ch = next();
             result = expression(ch);
             ch = read();
             if (ch == ')') ch = next();

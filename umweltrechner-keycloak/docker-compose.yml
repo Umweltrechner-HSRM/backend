@@ -33,6 +33,8 @@ services:
       KEYCLOAK_PASSWORD: develop
     ports:
       - "8084:8080"
+    volumes:
+      - ./export:/tmp/export/
     networks:
       - umweltrechner-keycloak
 

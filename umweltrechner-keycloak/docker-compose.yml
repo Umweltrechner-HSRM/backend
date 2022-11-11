@@ -35,6 +35,12 @@ services:
       - "8084:8080"
     volumes:
       - ./export:/tmp/export/
+    command:
+      - "-Dkeycloak.migration.provider=dir"
+      - "-Dkeycloak.migration.action=import"
+      - "-Dkeycloak.migration.dir=/tmp/export/"
+      - "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
+      - "-Dkeycloak.profile.feature.upload_scripts=enabled"
     networks:
       - umweltrechner-keycloak
 

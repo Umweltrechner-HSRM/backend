@@ -1,9 +1,7 @@
 package com.hsrm.umweltrechner.controllers;
 
-import javax.annotation.security.RolesAllowed;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,10 +13,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/test")
 public class TestController {
 
+  @Data
+  public static class Test {
+    private String value;
+  }
+
   @GetMapping(value = "/secret", produces = MediaType.APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('admin')")
-  public ResponseEntity<String> xsecret(){
-    return ResponseEntity.ok("secret");
+  public ResponseEntity<Test> xsecret(){
+    Test test = new Test();
+    test.setValue("secret");
+    return ResponseEntity.ok(test);
   }
 
   @GetMapping(value = "/public", produces = MediaType.APPLICATION_JSON_VALUE)

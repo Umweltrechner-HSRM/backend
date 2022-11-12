@@ -90,6 +90,14 @@ public class FormelInterpreter {
         return Character.isDigit(ch);
     }
 
+    private boolean isOperator(char ch) {
+        char[] operators = {'=', '!', '<', '>'};
+        for (char c : operators) {
+            if (ch == c) return true;
+        }
+        return false;
+    }
+
     // Split the input string into lines with a guaranteed newline character at the end
     private char[][] setup(String input) {
         String[] lines = input.split("\n");
@@ -153,6 +161,11 @@ public class FormelInterpreter {
         return variables;
     }
 
+    public SimpleEntry<String, SymbolEntry> getVariable(String sym) throws UnknownVariableException {
+        if (!variables.containsKey(sym)) throw new UnknownVariableException(sym);
+        return new SimpleEntry<>(sym, variables.get(sym));
+    }
+
     // Only get key-value pairs of variable name and value, without description or flags
     public HashMap<String, Double> getVariableValues() {
         HashMap<String, Double> result = new HashMap<>();
@@ -178,6 +191,7 @@ public class FormelInterpreter {
             buffer.add(chars[i]);
         }
 
+        // Collect the remaining characters from the buffer for concatenation
         char[] result = new char[buffer.size()];
         for (int i = 0; i < result.length; i++) {
             result[i] = buffer.get(i);
@@ -192,20 +206,128 @@ public class FormelInterpreter {
         for (line = 0; line < equations.length; line++) {
             index = 0;
             char ch = read();
-            // Iterate through all characters of line
-            while (index < equations[line].length - 1) {
-                if (isLetter(ch)) {
-                    ch = equation(ch);
-                    // Throw a syntax error if any unexpected characters come after the statement
-                    if (ch != '\n' && index != equations[line].length - 1)
-                        throw new IncorrectSyntaxException(line, index);
-                }
-                // Skip any spaces or newlines in front of, between or after statements
-                else if (ch == ' ' || ch == '\n') {
+
+            // Skip any spaces or newlines
+            while (ch == ' ') ch = next();
+            if (ch == '\n') continue;
+
+            // Check first (real) character of line, then proceed accordingly
+            // The remaining characters are iterated over in the called methods
+
+            // Labels are ignored as they only matter for goto statements which are handled separately
+            if (ch == ':') continue;
+            if (isLetter(ch)) {
+                // If the word is a keyword, proceed accordingly and start the next line afterwards
+                if(keyword(ch)) continue;
+                ch = equation(ch);
+                // Throw a syntax error if any unexpected characters come after the statement
+                if (ch != '\n') throw new IncorrectSyntaxException(line, index);
+            } else throw new IncorrectSyntaxException(line, index);
+        }
+    }
+
+    private boolean keyword(char ch) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
+        int start_index = index;
+
+        // Build potential keyword from letters
+        String sym = "";
+        while (isLetter(ch)) {
+            sym = sym + ch;
+            ch = next();
+        }
+        while (ch == ' ') ch = next();
+
+        // Jump to beginning of line and return false if not a keyword
+        switch (sym) {
+            case "if": ch = if_statement(ch); return true;
+            case "goto": ch = goto_label(ch); return true;
+            default: index = start_index; return false;
+        }
+    }
+
+    private char if_statement(char ch) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
+        boolean is_true = comparison(ch);
+        ch = read();
+
+        // If statements are always followed by a goto statement
+        String sym = "";
+        while (isLetter(ch)) {
+            sym = sym + ch;
+            ch = next();
+        }
+        while (ch == ' ') ch = next();
+
+        if (!sym.equals("goto")) throw new IncorrectSyntaxException(line, index);
+
+        // Only execute goto statement if comparison returned true
+        if (is_true) return goto_label(ch);
+        return ch;
+    }
+
+    private boolean comparison(char ch) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
+        double value1 = expression(ch);
+        ch = read();
+
+        String op = "";
+        while (isOperator(ch)) {
+            op = op + ch;
+            ch = next();
+        }
+        while (ch == ' ') ch = next();
+
+        // Perform comparison depending on read relational operator
+        double value2 = expression(ch);
+        switch (op) {
+            case "==": return (value1 == value2);
+            case "!=": return (value1 != value2);
+            case "<": return (value1 < value2);
+            case "<=": return (value1 <= value2);
+            case ">=": return (value1 >= value2);
+            case ">": return (value1 > value2);
+            default: throw new IncorrectSyntaxException(line, index);
+        }
+    }
+
+    private char goto_label(char ch) throws IncorrectSyntaxException {
+        String label1 = "";
+        while (isLetter(ch) || isDigit(ch)) {
+            label1 = label1 + ch;
+            ch = next();
+        }
+        while (ch == ' ') ch = next();
+
+        // Throw a syntax error if any unexpected characters come after the statement
+        if (ch != '\n') throw new IncorrectSyntaxException(line, index);
+
+        // Iterate over each line, looking for the label at the beginning (preceded by a colon)
+        while (line < equations.length - 1) {
+            // Go to the next line and start at the first character
+            line++;
+            index = 0;
+            ch = read();
+
+            while (ch == ' ') ch = next();
+
+            if (ch == ':') {
+                ch = next();
+                String label2 = "";
+                while (isLetter(ch) || isDigit(ch)) {
+                    label2 = label2 + ch;
                     ch = next();
-                } else throw new IncorrectSyntaxException(line, index);
+                }
+                while (ch == ' ') ch = next();
+
+                // Throw a syntax error if any unexpected characters come after the statement
+                if (ch != '\n') throw new IncorrectSyntaxException(line, index);
+
+                // If the label is the label we are looking for, stop the search here
+                // Otherwise continue on to the next line
+                if (label1.equals(label2)) return ch;
             }
         }
+
+        // Label could not be found
+        throw new IncorrectSyntaxException(line, index);
     }
 
     // Only here for clarity or future expansion

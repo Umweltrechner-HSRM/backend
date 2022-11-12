@@ -1,15 +1,39 @@
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class FormelInterpreter {
 
-    static class IncorrectSyntaxException extends Exception {
-        int index;
+    static class SymbolEntry {
+        Double value;
+        boolean read_only;
+        long last_modified;
 
-        public IncorrectSyntaxException(int index) {
-            super("Incorrect syntax at character index " + index);
-            this.index = index;
+        public SymbolEntry(Double value, boolean read_only) {
+            this.value = value;
+            this.read_only = read_only;
+            this.last_modified = System.currentTimeMillis();
+        }
+
+        public SymbolEntry(Double value) {
+            this(value, false);
+        }
+
+        @Override
+        public String toString() {
+            return "{value="+value+", read_only="+read_only+"}";
+        }
+    }
+
+    static class IncorrectSyntaxException extends Exception {
+        int line;
+        int ch;
+
+        public IncorrectSyntaxException(int line, int index) {
+            super("Incorrect syntax at line "+(line + 1)+" and character "+(index + 1));
+            this.line = line + 1;
+            this.ch = index + 1;
         }
     }
 
@@ -17,34 +41,44 @@ public class FormelInterpreter {
         String sym;
 
         public UnknownVariableException(String sym) {
-            super("Unknown variable " + sym);
+            super("Unknown variable "+sym);
             this.sym = sym;
         }
     }
 
-    private char[] equations;
+    static class IllegalWriteException extends Exception {
+        String sym;
+
+        public IllegalWriteException(String sym) {
+            super("Can't change value of read-only variable "+sym);
+            this.sym = sym;
+        }
+    }
+
+    private char[][] equations;
+    private int line = 0;
     private int index = 0;
-    private HashMap<String, Double> variables = new HashMap<>();
+    private HashMap<String, SymbolEntry> variables = new HashMap<>();
 
     // Since the program is constantly looking ahead one character, adding a newline
     // character ensures that there is at least one character left to read
     public FormelInterpreter(String equations) {
-        equations = equations + "\n";
-        this.equations = equations.toCharArray();
+        equations = equations + '\n';
+        this.equations = setup(removeComments(equations));
     }
 
     public FormelInterpreter() {
-        this.equations = new char['\n'];
+        this.equations = new char[1]['\n'];
     }
 
     // Get next character
     private char next() {
-        return equations[++index];
+        return equations[line][++index];
     }
 
     // Get current character
     private char read() {
-        return equations[index];
+        return equations[line][index];
     }
 
     private boolean isLetter(char ch) {
@@ -56,88 +90,143 @@ public class FormelInterpreter {
         return Character.isDigit(ch);
     }
 
+    // Split the input string into lines with a guaranteed newline character at the end
+    private char[][] setup(String input) {
+        String[] lines = input.split("\n");
+        char[][] result = new char[lines.length][];
+
+        for (int i = 0; i < lines.length; i++) {
+            result[i] = (lines[i] + "\n").toCharArray();
+        }
+
+        return result;
+    }
+
     // Get symbol value from variables HashMap
-    private Double getSymbol(String sym) {
+    private SymbolEntry getSymbol(String sym) {
         if (!variables.containsKey(sym)) {
-            variables.put(sym, null);
-            return null;
+            SymbolEntry entry = new SymbolEntry(null);
+            variables.put(sym, entry);
+            variables.get(sym).last_modified = System.currentTimeMillis();
+            return entry;
         }
         return variables.get(sym);
     }
 
-    // Add new symbol to variable HashMap, initialized as null by default
-    private Double setSymbol(String sym, double value) {
-        variables.put(sym, value);
-        return value;
+    // Add new symbol to variable HashMap, value initialized as null by default
+    private SymbolEntry setSymbol(String sym, SymbolEntry entry) throws IllegalWriteException {
+        if (variables.containsKey(sym) && variables.get(sym).read_only) throw new IllegalWriteException(sym);
+        variables.put(sym, entry);
+        variables.get(sym).last_modified = System.currentTimeMillis();
+        return entry;
     }
 
     // Check that the Syntax is valid by doing one calculation run with a second interpreter instance
-    private void checkSyntax(String newEquations) throws IncorrectSyntaxException, UnknownVariableException {
+    private void checkSyntax(String newEquations) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
         FormelInterpreter tester = new FormelInterpreter(newEquations);
-        for (Map.Entry<String, Double> entry : variables.entrySet()) {
-            tester.addVariable(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, SymbolEntry> entry : variables.entrySet()) {
+            try {
+                tester.setSymbol(entry.getKey(), entry.getValue());
+            }
+            catch (IllegalWriteException e) {
+                // this should never happen
+            }
         }
         tester.calculate();
     }
 
     // Set the equations to be used by the interpreter
-    public void setEquations(String newEquations) throws IncorrectSyntaxException, UnknownVariableException {
+    public void setEquations(String newEquations) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
         checkSyntax(newEquations);
-        newEquations = newEquations + "\n";
-        equations = newEquations.toCharArray();
+        newEquations = newEquations + '\n';
+        equations = setup(removeComments(newEquations));
     }
 
+    // Interface for backend, only to be used to add/change value of input variables
     public void addVariable(String sym, double value) {
-        variables.put(sym, value);
+        SymbolEntry entry = new SymbolEntry(value, true);
+        variables.put(sym, entry);
+        variables.get(sym).last_modified = System.currentTimeMillis();
     }
 
-    public HashMap<String, Double> getVariables() {
+    public HashMap<String, SymbolEntry> getVariables() {
         return variables;
+    }
+
+    // Only get key-value pairs of variable name and value, without description or flags
+    public HashMap<String, Double> getVariableValues() {
+        HashMap<String, Double> result = new HashMap<>();
+        for (Map.Entry<String, SymbolEntry> entry : variables.entrySet()) {
+            result.put(entry.getKey(), entry.getValue().value);
+        }
+        return result;
     }
 
     public void clearVariables() {
         variables.clear();
     }
 
+    public String removeComments(String input) {
+        char[] chars = (input + '\n').toCharArray();
+        ArrayList<Character> buffer = new ArrayList<>();
+
+        // Omit all characters between // (inclusive) and \n (exclusive)
+        for (int i = 0; i < chars.length - 1; i++) {
+            if (chars[i] == '/' && chars[i+1] == '/') {
+                while(chars[i] != '\n') i++;
+            }
+            buffer.add(chars[i]);
+        }
+
+        char[] result = new char[buffer.size()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = buffer.get(i);
+        }
+
+        return new String(result);
+    }
+
     // Run the equations through the interpreter using the variables present in the HashMap
-    public void calculate() throws IncorrectSyntaxException, UnknownVariableException {
-        index = 0;
-        char ch = read();
-        // Loop through all characters of set equations
-        while (index < equations.length - 1) {
-            if (isLetter(ch)) {
-                ch = equation(ch);
-                // Throw a syntax error if any unexpected characters come after the statement
-                if (ch != '\n' && index != equations.length - 1)
-                    throw new IncorrectSyntaxException(index);
+    public void calculate() throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
+        // Iterate through all lines
+        for (line = 0; line < equations.length; line++) {
+            index = 0;
+            char ch = read();
+            // Iterate through all characters of line
+            while (index < equations[line].length - 1) {
+                if (isLetter(ch)) {
+                    ch = equation(ch);
+                    // Throw a syntax error if any unexpected characters come after the statement
+                    if (ch != '\n' && index != equations[line].length - 1)
+                        throw new IncorrectSyntaxException(line, index);
+                }
+                // Skip any spaces or newlines in front of, between or after statements
+                else if (ch == ' ' || ch == '\n') {
+                    ch = next();
+                } else throw new IncorrectSyntaxException(line, index);
             }
-            // Skip any spaces or newlines in front of, between or after statements
-            else if (ch == ' ' || ch == '\n') {
-                ch = next();
-            }
-            else throw new IncorrectSyntaxException(index);
         }
     }
 
     // Only here for clarity or future expansion
-    private char equation(char ch) throws IncorrectSyntaxException, UnknownVariableException {
+    private char equation(char ch) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
         return assignment_statement(ch);
     }
 
     // Assign a value to a variable in the HashMap
     // Syntax: identifier := expression
-    private char assignment_statement(char ch) throws IncorrectSyntaxException, UnknownVariableException {
+    private char assignment_statement(char ch) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
         SimpleEntry<String, Double> var = variable(ch);
 
         ch = read();
-        if (ch != ':') throw new IncorrectSyntaxException(index);
+        if (ch != ':') throw new IncorrectSyntaxException(line, index);
         ch = next();
-        if (ch != '=') throw new IncorrectSyntaxException(index);
+        if (ch != '=') throw new IncorrectSyntaxException(line, index);
         ch = next();
         while (ch == ' ') ch = next();
 
         double result = expression(ch);
-        setSymbol(var.getKey(), result);
+        setSymbol(var.getKey(), new SymbolEntry(result, false));
 
         ch = read();
         return ch;
@@ -145,7 +234,7 @@ public class FormelInterpreter {
 
     // Build variable name, add to HashMap and retrieve value (null if previously undefined)
     private SimpleEntry<String, Double> variable(char ch) throws IncorrectSyntaxException {
-        if (!Character.isLetter(ch)) throw new IncorrectSyntaxException(index);
+        if (!Character.isLetter(ch)) throw new IncorrectSyntaxException(line, index);
 
         // Build variable name from read characters
         String sym = "";
@@ -155,7 +244,7 @@ public class FormelInterpreter {
         }
         while (ch == ' ') ch = next();
 
-        Double value = getSymbol(sym);
+        Double value = getSymbol(sym).value;
 
         return new SimpleEntry<String, Double>(sym, value);
     }
@@ -199,7 +288,7 @@ public class FormelInterpreter {
         char ch2 = ch;
         ch = next();
         while (ch == ' ') ch = next();
-        if (ch2 == '+' ) result = result + term(ch);
+        if (ch2 == '+') result = result + term(ch);
         else result = result - term(ch);
 
         return result;
@@ -209,14 +298,7 @@ public class FormelInterpreter {
     // - factor
     // - factor followed by multiplying operator (* or /) and another term
     private double term(char ch) throws IncorrectSyntaxException, UnknownVariableException {
-        // Interpret for +/- sign before term
-        double s = 1;
-        if (ch == '+' || ch == '-') {
-            s = sign(ch);
-            ch = read();
-        }
-
-        double result = s * factor(ch);
+        double result = factor(ch);
 
         ch = read();
         while (ch == '*' || ch == '/') {
@@ -240,6 +322,13 @@ public class FormelInterpreter {
     }
 
     private double factor(char ch) throws IncorrectSyntaxException, UnknownVariableException {
+        // Interpret for +/- sign before term
+        double s = 1;
+        if (ch == '+' || ch == '-') {
+            s = sign(ch);
+            ch = read();
+        }
+
         double result;
 
         // If the first character is a letter, it's a variable
@@ -259,13 +348,13 @@ public class FormelInterpreter {
             result = expression(ch);
             ch = read();
             if (ch == ')') ch = next();
-            else throw new IncorrectSyntaxException(index);
-        } else throw new IncorrectSyntaxException(index);
+            else throw new IncorrectSyntaxException(line, index);
+        } else throw new IncorrectSyntaxException(line, index);
 
         ch = read();
         while (ch == ' ') ch = next();
 
-        return result;
+        return s * result;
     }
 
     private double unsigned_constant(char ch) {

@@ -18,6 +18,16 @@ repositories {
 	mavenCentral()
 }
 
+ext {
+	set('keycloakVersion', '19.0.0')
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.keycloak.bom:keycloak-adapter-bom:${keycloakVersion}"
+	}
+}
+
 dependencies {
 	// Spring Boot
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
@@ -50,7 +60,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
-
+	// Keycloak
+	implementation 'org.keycloak:keycloak-spring-boot-starter'
 }
 
 tasks.named('test') {

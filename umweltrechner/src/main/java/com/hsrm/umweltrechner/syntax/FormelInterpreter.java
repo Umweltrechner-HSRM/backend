@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FormelInterpreter {
+public class FormelInterpreter implements Interpreter {
 
     static class SymbolEntry {
         Double value;
@@ -58,13 +58,14 @@ public class FormelInterpreter {
     private char[][] equations;
     private int line = 0;
     private int index = 0;
+    private boolean syntax_only = false;
     private HashMap<String, SymbolEntry> variables = new HashMap<>();
 
-    // Since the program is constantly looking ahead one character, adding a newline
-    // character ensures that there is at least one character left to read
-    public FormelInterpreter(String equations) {
+    // Only to be used internally as part of the syntax validation
+    private FormelInterpreter(String equations, boolean syntax_only) {
         equations = equations + '\n';
         this.equations = setup(removeComments(equations));
+        this.syntax_only = syntax_only;
     }
 
     public FormelInterpreter() {
@@ -110,6 +111,27 @@ public class FormelInterpreter {
         return result;
     }
 
+    private String removeComments(String input) {
+        char[] chars = (input + '\n').toCharArray();
+        ArrayList<Character> buffer = new ArrayList<>();
+
+        // Omit all characters between // (inclusive) and \n (exclusive)
+        for (int i = 0; i < chars.length - 1; i++) {
+            if (chars[i] == '/' && chars[i+1] == '/') {
+                while(chars[i] != '\n') i++;
+            }
+            buffer.add(chars[i]);
+        }
+
+        // Collect the remaining characters from the buffer for concatenation
+        char[] result = new char[buffer.size()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = buffer.get(i);
+        }
+
+        return new String(result);
+    }
+
     // Get symbol value from variables HashMap
     private SymbolEntry getSymbol(String sym) {
         if (!variables.containsKey(sym)) {
@@ -129,9 +151,18 @@ public class FormelInterpreter {
         return entry;
     }
 
-    // Check that the Syntax is valid by doing one calculation run with a second interpreter instance
-    private void checkSyntax(String newEquations) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
-        FormelInterpreter tester = new FormelInterpreter(newEquations);
+    // Set the equations to be used by the interpreter
+    // Since the program is constantly looking ahead one character, adding a newline
+    // character ensures that there is at least one character left to read
+    public void setEquations(String newEquations) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
+        // checkSyntax(newEquations);
+        newEquations = newEquations + '\n';
+        equations = setup(removeComments(newEquations));
+    }
+
+    // Check that the syntax is valid by doing one calculation run with a second interpreter instance
+    public void checkSyntax(String newEquations) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
+        FormelInterpreter tester = new FormelInterpreter(newEquations, true);
         for (Map.Entry<String, SymbolEntry> entry : variables.entrySet()) {
             try {
                 tester.setSymbol(entry.getKey(), entry.getValue());
@@ -143,31 +174,33 @@ public class FormelInterpreter {
         tester.calculate();
     }
 
-    // Set the equations to be used by the interpreter
-    public void setEquations(String newEquations) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
-        checkSyntax(newEquations);
-        newEquations = newEquations + '\n';
-        equations = setup(removeComments(newEquations));
+    public void setSensors(HashMap<String, Double> newSensors) {
+        // (optional) TODO
     }
 
-    // Interface for backend, only to be used to add/change value of input variables
-    public void addVariable(String sym, double value) {
+    // Only to be used by surrounding application to add new read-only variables (sensors)
+    public void addSensor(String name, double value) {
         SymbolEntry entry = new SymbolEntry(value, true);
-        variables.put(sym, entry);
-        variables.get(sym).last_modified = System.currentTimeMillis();
+        variables.put(name, entry);
+        variables.get(name).last_modified = System.currentTimeMillis();
     }
 
-    public HashMap<String, SymbolEntry> getVariables() {
-        return variables;
+    public void removeSensor(String name) throws UnknownVariableException {
+        if (!variables.containsKey(name)) throw new UnknownVariableException(name);
+        variables.remove(name);
     }
 
-    public SimpleEntry<String, SymbolEntry> getVariable(String sym) throws UnknownVariableException {
+    public boolean sensorExists(String name) {
+        return variables.containsKey(name);
+    }
+
+    public Double getVariable(String sym) throws UnknownVariableException {
         if (!variables.containsKey(sym)) throw new UnknownVariableException(sym);
-        return new SimpleEntry<>(sym, variables.get(sym));
+        return variables.get(sym).value;
     }
 
     // Only get key-value pairs of variable name and value, without description or flags
-    public HashMap<String, Double> getVariableValues() {
+    public HashMap<String, Double> getVariables() {
         HashMap<String, Double> result = new HashMap<>();
         for (Map.Entry<String, SymbolEntry> entry : variables.entrySet()) {
             result.put(entry.getKey(), entry.getValue().value);
@@ -175,29 +208,23 @@ public class FormelInterpreter {
         return result;
     }
 
-    public void clearVariables() {
-        variables.clear();
+    // Other getter methods that could be set to public if needed somewhere
+    private HashMap<String, SymbolEntry> getEntries() {
+        return variables;
     }
 
-    public String removeComments(String input) {
-        char[] chars = (input + '\n').toCharArray();
-        ArrayList<Character> buffer = new ArrayList<>();
+    private SymbolEntry getEntry(String sym) throws UnknownVariableException {
+        if (!variables.containsKey(sym)) throw new UnknownVariableException(sym);
+        return variables.get(sym);
+    }
 
-        // Omit all characters between // (inclusive) and \n (exclusive)
-        for (int i = 0; i < chars.length - 1; i++) {
-            if (chars[i] == '/' && chars[i+1] == '/') {
-                while(chars[i] != '\n') i++;
-            }
-            buffer.add(chars[i]);
-        }
+    // Not yet implemented
+    private HashMap<String, Double> getSensors() {
+        return new HashMap<>();
+    }
 
-        // Collect the remaining characters from the buffer for concatenation
-        char[] result = new char[buffer.size()];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = buffer.get(i);
-        }
-
-        return new String(result);
+    private void clearVariables() {
+        variables.clear();
     }
 
     // Run the equations through the interpreter using the variables present in the HashMap
@@ -226,6 +253,7 @@ public class FormelInterpreter {
         }
     }
 
+    // Returns true if the line started with a keyword and calls the corresponding keyword method
     private boolean keyword(char ch) throws IncorrectSyntaxException, UnknownVariableException, IllegalWriteException {
         int start_index = index;
 
@@ -299,6 +327,9 @@ public class FormelInterpreter {
         // Throw a syntax error if any unexpected characters come after the statement
         if (ch != '\n') throw new IncorrectSyntaxException(line, index);
 
+        int currentLine = line;
+        int currentIndex = index;
+
         // Iterate over each line, looking for the label at the beginning (preceded by a colon)
         while (line < equations.length - 1) {
             // Go to the next line and start at the first character
@@ -322,12 +353,18 @@ public class FormelInterpreter {
 
                 // If the label is the label we are looking for, stop the search here
                 // Otherwise continue on to the next line
-                if (label1.equals(label2)) return ch;
+                if (label1.equals(label2)) {
+                    if (syntax_only) {
+                        line = currentLine;
+                        index = currentIndex;
+                    }
+                    return ch;
+                }
             }
         }
 
         // Label could not be found
-        throw new IncorrectSyntaxException(line, index);
+        throw new IncorrectSyntaxException(currentLine, currentIndex);
     }
 
     // Only here for clarity or future expansion
@@ -378,7 +415,6 @@ public class FormelInterpreter {
 
     // Simple expression can be either
     // - term
-    // - term preceded by a sign (+/-)
     // - simple expression followed by adding operator (+/-) and another simple expression
     private double simple_expression(char ch) throws IncorrectSyntaxException, UnknownVariableException {
         double result = term(ch);
@@ -389,17 +425,6 @@ public class FormelInterpreter {
             result = adding_operator(ch, result);
             ch = read();
         }
-        while (ch == ' ') ch = next();
-
-        return result;
-    }
-
-    private double sign(char ch) {
-        double result;
-        if (ch == '+') result = 1;
-        else result = -1;
-
-        ch = next();
         while (ch == ' ') ch = next();
 
         return result;
@@ -477,6 +502,17 @@ public class FormelInterpreter {
         while (ch == ' ') ch = next();
 
         return s * result;
+    }
+
+    private double sign(char ch) {
+        double result;
+        if (ch == '+') result = 1;
+        else result = -1;
+
+        ch = next();
+        while (ch == ' ') ch = next();
+
+        return result;
     }
 
     private double unsigned_constant(char ch) {

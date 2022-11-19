@@ -10,4 +10,6 @@ import com.hsrm.umweltrechner.dao.model.Formula;
 public interface FormulaMapper {
 
   List<Formula> selectAll();
+
+  int insert(Formula formula);
 }

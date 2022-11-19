@@ -1,7 +1,6 @@
 package com.hsrm.umweltrechner.services;
 
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import com.hsrm.umweltrechner.dao.mapper.FormulaMapper;
 import com.hsrm.umweltrechner.dao.mapper.SensorMapper;
-import com.hsrm.umweltrechner.dao.model.Sensor;
 import com.hsrm.umweltrechner.syntax.FormelInterpreter;
 import com.hsrm.umweltrechner.syntax.Interpreter;
 
@@ -42,7 +40,7 @@ public class FormulaInterpreterService {
   }
 
   @PostConstruct
-  public void init() {
+  private void init() {
     sensorMapper.selectAll().forEach(sensor -> {
       double value = sensor.getValue() != null ? sensor.getValue() : 0;
       interpreter.addSensor(sensor.getName(), value);
@@ -67,15 +65,24 @@ public class FormulaInterpreterService {
     interpreter.addSensor(sensorName, value);
   }
 
+  public void addFormula(){
+    init();
+  }
 
 
-  public HashMap<String, FormelInterpreter.SymbolEntry> getVariables() {
+  public HashMap<String, FormelInterpreter.SymbolEntry> calculateAndGetVariables() {
     try {
       interpreter.calculate();
     } catch (Exception e) {
       log.error("Error while calculating formula", e);
     }
     return interpreter.getVariablesWithFlag();
+  }
+
+
+  public void checkSyntax(String formula) throws FormelInterpreter.IllegalWriteException,
+      FormelInterpreter.UnknownVariableException, FormelInterpreter.IncorrectSyntaxException {
+    interpreter.checkSyntax(formula);
   }
 
 

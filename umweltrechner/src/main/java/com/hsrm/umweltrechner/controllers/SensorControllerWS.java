@@ -39,7 +39,7 @@ public class SensorControllerWS {
 
   @Scheduled(fixedRate = 1000)
   public void scheduledVariables(){
-    formulaInterpreterService.getVariables().forEach((key, value) -> {
+    formulaInterpreterService.calculateAndGetVariables().forEach((key, value) -> {
       log.info("Sending sensor data for sensor " + key + ": " + value);
       SensorData sensorData = new SensorData();
       sensorData.setValue(value.getValue());

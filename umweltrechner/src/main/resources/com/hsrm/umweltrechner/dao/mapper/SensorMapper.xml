@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsrm.umweltrechner.dao.mapper.SensorMapper">
+
+    <resultMap id="BaseResultMap" type="com.hsrm.umweltrechner.dao.model.Sensor">
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="location" jdbcType="VARCHAR" property="location"/>
+        <result column="unit" jdbcType="VARCHAR" property="unit"/>
+        <result column="value" jdbcType="DOUBLE" property="value"/>
+        <result column="simulation_code" jdbcType="VARCHAR" property="simulationCode"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+    </resultMap>
+    <insert id="insert" parameterType="com.hsrm.umweltrechner.dao.model.Sensor">
+        INSERT INTO sensor (name, description, location, unit, value, simulation_code, created_at)
+        VALUES (#{name,jdbcType=VARCHAR},
+                #{description,jdbcType=VARCHAR},
+                #{location,jdbcType=VARCHAR},
+                #{unit,jdbcType=VARCHAR},
+                #{value,jdbcType=DOUBLE},
+                #{simulationCode,jdbcType=VARCHAR},
+                #{createdAt,jdbcType=TIMESTAMP})
+    </insert>
+
+    <delete id="deleteByName">
+        DELETE
+        FROM sensor
+        WHERE name = #{name,jdbcType=VARCHAR}
+    </delete>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT name, description, location, unit, value, simulation_code, created_at
+        FROM sensor
+    </select>
+
+    <select id="selectByName" resultMap="BaseResultMap">
+        SELECT name
+        FROM sensor
+        WHERE name = #{name,jdbcType=VARCHAR}
+    </select>
+</mapper>

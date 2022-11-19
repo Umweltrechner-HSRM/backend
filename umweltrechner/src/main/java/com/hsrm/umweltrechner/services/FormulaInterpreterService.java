@@ -1,6 +1,7 @@
 package com.hsrm.umweltrechner.services;
 
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.hsrm.umweltrechner.dao.mapper.FormulaMapper;
 import com.hsrm.umweltrechner.dao.mapper.SensorMapper;
+import com.hsrm.umweltrechner.dao.model.Sensor;
 import com.hsrm.umweltrechner.syntax.FormelInterpreter;
 import com.hsrm.umweltrechner.syntax.Interpreter;
 
@@ -55,10 +57,14 @@ public class FormulaInterpreterService {
     });
   }
 
-  public void addSensorValue(String sensorName, double value) {
-    if (interpreter.getVariables().containsKey(sensorName)) {
-      interpreter.addSensor(sensorName, value);
+  public void addSensorValue(String sensorName, Double value, boolean isNew) {
+    if (!isNew && interpreter.sensorExists(sensorName)) {
+      return;
     }
+    if (value == null) {
+      value = (double) 0xBabeCafe;
+    }
+    interpreter.addSensor(sensorName, value);
   }
 
 

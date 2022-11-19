@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Controller
 @EnableScheduling
 @Slf4j
-public class SensorDataControllerWS {
+public class SensorControllerWS {
 
   @Autowired
   SimpMessagingTemplate template;
@@ -34,7 +34,7 @@ public class SensorDataControllerWS {
   @MessageMapping("/temperature/{sensor}")
   public void sendTemperature(@DestinationVariable("sensor") String sensor, SensorData sensorData) {
     log.info("Received temperature data from sensor " + sensor + ": " + sensorData);
-    formulaInterpreterService.addSensorValue(sensor, sensorData.getValue());
+    formulaInterpreterService.addSensorValue(sensor, sensorData.getValue(), false);
   }
 
   @Scheduled(fixedRate = 1000)

@@ -52,6 +52,12 @@ public class FormulaInterpreterService {
     });
   }
 
+  public void addSensorValue(String sensorName, double value) {
+    if (interpreter.getVariables().containsKey(sensorName)) {
+      interpreter.addSensor(sensorName, value);
+    }
+  }
+
 
 
   public HashMap<String, FormelInterpreter.SymbolEntry> getVariables() {

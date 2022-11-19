@@ -14,7 +14,10 @@ import com.hsrm.umweltrechner.dao.mapper.SensorMapper;
 import com.hsrm.umweltrechner.syntax.FormelInterpreter;
 import com.hsrm.umweltrechner.syntax.Interpreter;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 @EnableScheduling
 public class FormulaInterpreterService {
 
@@ -47,7 +50,7 @@ public class FormulaInterpreterService {
         interpreter.checkSyntax(formula.getFormula());
         interpreter.setEquations(formula.getFormula());
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error("Error while parsing formula " + formula.getFormula(), e);
       }
     });
   }
@@ -64,7 +67,7 @@ public class FormulaInterpreterService {
     try {
       interpreter.calculate();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error("Error while calculating formula", e);
     }
     return interpreter.getVariablesWithFlag();
   }

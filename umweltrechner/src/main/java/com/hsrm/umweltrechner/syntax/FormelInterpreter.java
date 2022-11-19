@@ -35,7 +35,7 @@ public class FormelInterpreter implements Interpreter {
     }
   }
 
-  static class IncorrectSyntaxException extends Exception {
+  public static class IncorrectSyntaxException extends Exception {
     int line;
     int ch;
 
@@ -46,7 +46,7 @@ public class FormelInterpreter implements Interpreter {
     }
   }
 
-  static class UnknownVariableException extends Exception {
+  public static class UnknownVariableException extends Exception {
     String sym;
 
     public UnknownVariableException(String sym) {
@@ -55,7 +55,7 @@ public class FormelInterpreter implements Interpreter {
     }
   }
 
-  static class IllegalWriteException extends Exception {
+  public static class IllegalWriteException extends Exception {
     String sym;
 
     public IllegalWriteException(String sym) {

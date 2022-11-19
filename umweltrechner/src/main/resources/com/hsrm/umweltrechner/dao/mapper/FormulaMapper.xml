@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsrm.umweltrechner.dao.mapper.FormulaMapper">
+
+    <resultMap id="BaseResultMap" type="com.hsrm.umweltrechner.dao.model.Formula">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="formula" jdbcType="VARCHAR" property="formula"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT id, formula
+        from formula
+    </select>
+</mapper>

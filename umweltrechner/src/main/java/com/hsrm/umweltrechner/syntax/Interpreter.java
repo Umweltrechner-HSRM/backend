@@ -1,9 +1,11 @@
+package com.hsrm.umweltrechner.syntax;
+
 import java.util.HashMap;
 
 public interface Interpreter {
 
     // Set or change the equations used by the interpreter
-    // Validity of syntax should be checked beforehand using the checkSytnax method
+    // Validity of syntax should be checked beforehand using the checkSyntax method
     void setEquations(String newEquations) throws
             FormelInterpreter.IncorrectSyntaxException,
             FormelInterpreter.UnknownVariableException,
@@ -37,6 +39,8 @@ public interface Interpreter {
 
     // Get all variables as name-value-pairs
     HashMap<String, Double> getVariables();
+
+    HashMap<String, FormelInterpreter.SymbolEntry> getVariablesWithFlag();
 
     // Get the value of a single variable
     Double getVariable(String sym) throws FormelInterpreter.UnknownVariableException;

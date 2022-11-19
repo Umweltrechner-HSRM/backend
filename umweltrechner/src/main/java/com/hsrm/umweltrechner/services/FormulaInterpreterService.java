@@ -1,6 +1,7 @@
 package com.hsrm.umweltrechner.services;
 
 import java.util.HashMap;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 
@@ -18,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-@EnableScheduling
 public class FormulaInterpreterService {
 
   @Qualifier("FormelInterpreter")
@@ -77,6 +77,10 @@ public class FormulaInterpreterService {
       log.error("Error while calculating formula", e);
     }
     return interpreter.getVariablesWithFlag();
+  }
+
+  public List<String> getVariableNames(){
+    return interpreter.getVariables().keySet().stream().toList();
   }
 
 

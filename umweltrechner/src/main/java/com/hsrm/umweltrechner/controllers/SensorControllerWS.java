@@ -28,7 +28,7 @@ public class SensorControllerWS {
   FormulaInterpreterService formulaInterpreterService;
 
 
-  @MessageMapping("/temperature/{sensor}")
+  @MessageMapping("/{sensor}")
   public void sendTemperature(@DestinationVariable("sensor") String sensor, DtoSensorData sensorData) {
     log.info("Received temperature data from sensor " + sensor + ": " + sensorData);
     formulaInterpreterService.addSensorValue(sensor, sensorData.getValue(), false);

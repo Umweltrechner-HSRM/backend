@@ -42,13 +42,14 @@ public class FormulaInterpreterService {
   @PostConstruct
   private void init() {
     sensorMapper.selectAll().forEach(sensor -> {
-      double value = sensor.getValue() != null ? sensor.getValue() : 0;
+      double value = sensor.getValue() != null ? sensor.getValue() : (double) 0xBabeCafe;
       interpreter.addSensor(sensor.getName(), value);
     });
     formulaMapper.selectAll().forEach(formula -> {
       try {
         interpreter.checkSyntax(formula.getFormula());
         interpreter.setEquations(formula.getFormula());
+        interpreter.calculate();
       } catch (Exception e) {
         log.error("Error while parsing formula " + formula.getFormula(), e);
       }

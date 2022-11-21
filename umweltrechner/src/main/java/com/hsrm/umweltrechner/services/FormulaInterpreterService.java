@@ -71,6 +71,9 @@ public class FormulaInterpreterService {
 
 
   public HashMap<String, FormelInterpreter.SymbolEntry> calculateAndGetVariables() {
+    if(interpreter.getVariables().isEmpty()){
+      return null;
+    }
     try {
       interpreter.calculate();
     } catch (Exception e) {

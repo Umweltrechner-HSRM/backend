@@ -1,5 +1,7 @@
 package com.hsrm.umweltrechner.controllers;
 
+import java.util.HashMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -10,8 +12,8 @@ import org.springframework.stereotype.Controller;
 
 import com.hsrm.umweltrechner.dto.DtoSensorData;
 import com.hsrm.umweltrechner.services.FormulaInterpreterService;
+import com.hsrm.umweltrechner.syntax.FormelInterpreter;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
@@ -34,13 +36,17 @@ public class SensorControllerWS {
 
   @Scheduled(fixedRate = 1000)
   public void scheduledVariables(){
-    formulaInterpreterService.calculateAndGetVariables().forEach((key, value) -> {
-      log.info("Sending sensor data for sensor " + key + ": " + value);
-      DtoSensorData sensorData = new DtoSensorData();
-      sensorData.setValue(value.getValue());
-      sensorData.setTimestamp(value.getLastModified());
-      template.convertAndSend("/topic/" + key, sensorData);
-    });
+    HashMap<String, FormelInterpreter.SymbolEntry> variables = formulaInterpreterService.calculateAndGetVariables();
+    if(variables != null){
+      formulaInterpreterService.calculateAndGetVariables().forEach((key, value) -> {
+        log.info("Sending sensor data for sensor " + key + ": " + value);
+        DtoSensorData sensorData = new DtoSensorData();
+        sensorData.setValue(value.getValue());
+        sensorData.setTimestamp(value.getLastModified());
+        template.convertAndSend("/topic/" + key, sensorData);
+      });
+    }
+
   }
 
 }

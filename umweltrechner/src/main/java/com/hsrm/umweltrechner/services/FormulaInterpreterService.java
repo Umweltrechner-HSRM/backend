@@ -7,7 +7,6 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
 
 import com.hsrm.umweltrechner.dao.mapper.FormulaMapper;
@@ -56,10 +55,7 @@ public class FormulaInterpreterService {
     });
   }
 
-  public void addSensorValue(String sensorName, Double value, boolean isNew) {
-    if (!isNew && interpreter.sensorExists(sensorName)) {
-      return;
-    }
+  public void addSensorValue(String sensorName, Double value) {
     if (value == null) {
       value = (double) 0xBabeCafe;
     }

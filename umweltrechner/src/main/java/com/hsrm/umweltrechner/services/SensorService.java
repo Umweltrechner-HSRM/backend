@@ -30,7 +30,7 @@ public class SensorService {
   public Sensor addOrUpdateSensor(Sensor sensor) {
     sensorMapper.deleteByName(sensor.getName());
     sensorMapper.insert(sensor);
-    formulaInterpreterService.addSensorValue(sensor.getName(), null, true);
+    formulaInterpreterService.addSensorValue(sensor.getName(), sensor.getValue());
     return sensor;
   }
 

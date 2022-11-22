@@ -23,6 +23,8 @@ public interface Interpreter {
     void setSensors(HashMap<String, Double> newSensors);
 
     // Add a single sensor or update the value of an existing sensor
+    // By default the current time in milliseconds is used as the timestamp
+    void addSensor(String name, double value, long timestamp);
     void addSensor(String name, double value);
 
     // Remove a sensor. Throws UnknownVariableException if the given name can not be found

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import com.hsrm.umweltrechner.dao.mapper.FormulaMapper;
 import com.hsrm.umweltrechner.dao.mapper.SensorMapper;
+import com.hsrm.umweltrechner.dao.mapper.VariableMapper;
+import com.hsrm.umweltrechner.dao.model.Variable;
 import com.hsrm.umweltrechner.syntax.FormelInterpreter;
 import com.hsrm.umweltrechner.syntax.Interpreter;
 
@@ -27,15 +29,19 @@ public class FormulaInterpreterService {
 
   private final FormulaMapper formulaMapper;
 
+  private final VariableMapper variablesMapper;
+
 
   @Autowired
   public FormulaInterpreterService(
       Interpreter formulaInterpreter,
       SensorMapper sensorMapper,
-      FormulaMapper formulaMapper) {
+      FormulaMapper formulaMapper,
+      VariableMapper variablesMapper) {
     this.interpreter = formulaInterpreter;
     this.sensorMapper = sensorMapper;
     this.formulaMapper = formulaMapper;
+    this.variablesMapper = variablesMapper;
   }
 
   @PostConstruct
@@ -49,6 +55,19 @@ public class FormulaInterpreterService {
         interpreter.checkSyntax(formula.getFormula());
         interpreter.setEquations(formula.getFormula());
         interpreter.calculate();
+
+        // update variables table
+        // if variable is in interpreter.variables() but not in table, insert it
+        // if variable is in table but not in interpreter.variables(), delete it? (threshold will
+        // be removed from table)
+        List<String> variables = getVariableNames();
+        List<Variable> variableFromTable = variablesMapper.selectAll();
+
+
+
+
+
+
       } catch (Exception e) {
         log.error("Error while parsing formula " + formula.getFormula(), e);
       }
@@ -73,6 +92,8 @@ public class FormulaInterpreterService {
     }
     try {
       interpreter.calculate();
+      // compare thresholds from variable table with calculated values
+      // and send signal
     } catch (Exception e) {
       log.error("Error while calculating formula", e);
     }

@@ -18,9 +18,11 @@ public class VariableController {
   private FormulaInterpreterService formulaInterpreterService;
 
   @GetMapping
-  public ResponseEntity<List<String>> getSensorNames(){
+  public ResponseEntity<List<String>> getVariables(){
     return ResponseEntity.ok(formulaInterpreterService.getVariableNames());
   }
+
+  // Post or Patch endpoint to update thresholds
 
 
 

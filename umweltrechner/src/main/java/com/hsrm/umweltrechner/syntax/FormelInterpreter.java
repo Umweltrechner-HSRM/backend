@@ -579,21 +579,4 @@ public class FormelInterpreter implements Interpreter {
     // double (i.e. the result is between Double.MIN_VALUE and Double.MAX_VALUE and is not INF)
     return Double.parseDouble(result);
   }
-
-  public static void main(String[] args) throws IllegalWriteException, UnknownVariableException, IncorrectSyntaxException, InterruptedException {
-    FormelInterpreter formelInterpreter = new FormelInterpreter();
-
-    formelInterpreter.addSensor("sensor1", 1);
-    formelInterpreter.addSensor("sensor2", 0);
-    formelInterpreter.setEquations("sensorTempDif := sensor2 - sensor1");
-
-    while(true) {
-      formelInterpreter.calculate();
-      Thread.sleep(5000);
-      System.out.println(formelInterpreter.getVariables());
-    }
-
-
-
-  }
 }

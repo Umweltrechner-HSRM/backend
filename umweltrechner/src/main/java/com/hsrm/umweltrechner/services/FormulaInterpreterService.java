@@ -74,20 +74,21 @@ public class FormulaInterpreterService {
     });
   }
 
-  public void addSensorValue(String sensorName, Double value) {
+  public void addSensorValue(String sensorName, Double value, Long ts) {
     if (value == null) {
       value = (double) 0xBabeCafe;
     }
-    interpreter.addSensor(sensorName, value);
+    long timestamp = ts != null ? ts : System.currentTimeMillis();
+    interpreter.addSensor(sensorName, value, timestamp);
   }
 
-  public void addFormula(){
+  public void addFormula() {
     init();
   }
 
 
   public HashMap<String, FormelInterpreter.SymbolEntry> calculateAndGetVariables() {
-    if(interpreter.getVariables().isEmpty()){
+    if (interpreter.getVariables().isEmpty()) {
       return null;
     }
     try {
@@ -100,7 +101,7 @@ public class FormulaInterpreterService {
     return interpreter.getVariablesWithFlag();
   }
 
-  public List<String> getVariableNames(){
+  public List<String> getVariableNames() {
     return interpreter.getVariables().keySet().stream().toList();
   }
 

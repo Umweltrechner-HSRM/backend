@@ -5,6 +5,7 @@ services:
   umweltrechner-mysql-db:
     image: mysql:8.0
     container_name: umweltrechner-mysql-db
+    restart: always
     ports:
       - "3312:3306"
     environment:
@@ -12,3 +13,8 @@ services:
       MYSQL_USER: umweltrechner
       MYSQL_PASSWORD: 123456Aa@
       MYSQL_ROOT_HOST: '%'
+    volumes:
+      - ./scripts:/docker-entrypoint-initdb.d/
+
+volumes:
+  scripts:

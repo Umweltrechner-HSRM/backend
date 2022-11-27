@@ -59,9 +59,6 @@ dependencies {
 	testImplementation 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok';
 
-	//Liquibase
-	implementation 'org.liquibase:liquibase-gradle-plugin:2.0.4'
-	implementation 'org.liquibase:liquibase-core'
 	// MyBatis
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.2'
 	implementation group: 'org.mybatis', name: 'mybatis', version: '3.5.6'

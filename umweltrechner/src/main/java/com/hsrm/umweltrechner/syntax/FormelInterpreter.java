@@ -85,7 +85,7 @@ public class FormelInterpreter implements Interpreter {
     }
 
     public FormelInterpreter() {
-        this.equations = new char[1]['\n'];
+        this.equations = new char[0]['\n'];
     }
 
     // Get next character

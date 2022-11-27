@@ -31,10 +31,10 @@ public class SensorControllerWS {
   @MessageMapping("/{sensor}")
   public void sendTemperature(@DestinationVariable("sensor") String sensor, DtoSensorData sensorData) {
     log.info("Received temperature data from sensor " + sensor + ": " + sensorData);
-    formulaInterpreterService.addSensorValue(sensor, sensorData.getValue());
+    formulaInterpreterService.addSensorValue(sensor, sensorData.getValue(), sensorData.getTimestamp());
   }
 
-  @Scheduled(fixedRate = 5000)
+  @Scheduled(fixedRate = 1000)
   public void scheduledVariables(){
     HashMap<String, FormelInterpreter.SymbolEntry> variables = formulaInterpreterService.calculateAndGetVariables();
     if(variables != null){

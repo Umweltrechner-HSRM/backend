@@ -6,15 +6,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.stereotype.Component;
+//import org.springframework.stereotype.Component;
 
-import lombok.Data;
+//import lombok.Data;
 
-@Component("FormelInterpreter")
+//@Component("FormelInterpreter")
 
 public class FormelInterpreter implements Interpreter {
 
-    @Data
+    //@Data
     public static class SymbolEntry {
         Double value;
         boolean readOnly;
@@ -37,35 +37,6 @@ public class FormelInterpreter implements Interpreter {
         @Override
         public String toString() {
             return "{value=" + value + ", readOnly=" + readOnly + ", lastModified="+ lastModified + "}";
-        }
-    }
-
-    public static class IncorrectSyntaxException extends Exception {
-        int line;
-        int ch;
-
-        public IncorrectSyntaxException(int line, int index) {
-            super("Incorrect syntax at line " + (line + 1) + " and character " + (index + 1));
-            this.line = line + 1;
-            this.ch = index + 1;
-        }
-    }
-
-    public static class UnknownVariableException extends Exception {
-        String sym;
-
-        public UnknownVariableException(String sym) {
-            super("Unknown symbol " + sym);
-            this.sym = sym;
-        }
-    }
-
-    public static class IllegalWriteException extends Exception {
-        String sym;
-
-        public IllegalWriteException(String sym) {
-            super("Can't change value of read-only symbol " + sym);
-            this.sym = sym;
         }
     }
 
@@ -170,7 +141,7 @@ public class FormelInterpreter implements Interpreter {
     // Since the program is constantly looking ahead one character, adding a newline
     // character ensures that there is at least one character left to read
     public void setEquations(String newEquations) throws IncorrectSyntaxException,
-            UnknownVariableException, IllegalWriteException {
+            UnknownSymbolException, IllegalWriteException {
         // checkSyntax(newEquations);
         newEquations = newEquations + '\n';
         equations = setup(removeComments(newEquations));
@@ -178,7 +149,7 @@ public class FormelInterpreter implements Interpreter {
 
     // Check that the syntax is valid by doing one calculation run with a second interpreter instance
     public void checkSyntax(String newEquations) throws IncorrectSyntaxException,
-            UnknownVariableException, IllegalWriteException {
+            UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
         FormelInterpreter tester = new FormelInterpreter(newEquations, true);
         for (Map.Entry<String, SymbolEntry> entry : variables.entrySet()) {
             try {
@@ -190,22 +161,38 @@ public class FormelInterpreter implements Interpreter {
         tester.calculate();
     }
 
-    public void setSensors(HashMap<String, Double> newSensors) {
+    public void setSensors(HashMap<String, Double> newSensors) throws OutOfRangeException,
+            InvalidSymbolException {
         // (optional) TODO
     }
 
     // Only to be used by surrounding application to add new read-only variables (sensors)
-    public void addSensor(String name, double value, long timestamp) {
+    public void addSensor(String name, double value, long timestamp) throws OutOfRangeException,
+            InvalidSymbolException {
+
+        if (value == Double.MIN_VALUE || value == Double.MAX_VALUE) throw new OutOfRangeException();
+
+        char[] sym = name.toCharArray();
+
+        if (sym.length == 0) throw new InvalidSymbolException(name);
+
+        for (int i = 0; i < sym.length; i++) {
+            if (!(isLetter(sym[i]) || isDigit(sym[i]))) throw new InvalidSymbolException(name);
+            if (i == 0 && isDigit(sym[i])) throw new InvalidSymbolException(name);
+        }
+
         SymbolEntry entry = new SymbolEntry(value, true, timestamp);
         variables.put(name, entry);
     }
 
-    public void addSensor(String name, double value) {
+    public void addSensor(String name, double value) throws OutOfRangeException,
+            InvalidSymbolException {
+
         addSensor(name, value, System.currentTimeMillis());
     }
 
-    public void removeSensor(String name) throws UnknownVariableException {
-        if (!variables.containsKey(name)) throw new UnknownVariableException(name);
+    public void removeSensor(String name) throws UnknownSymbolException {
+        if (!variables.containsKey(name)) throw new UnknownSymbolException(name);
         variables.remove(name);
     }
 
@@ -213,8 +200,8 @@ public class FormelInterpreter implements Interpreter {
         return variables.containsKey(name);
     }
 
-    public Double getVariable(String sym) throws UnknownVariableException {
-        if (!variables.containsKey(sym)) throw new UnknownVariableException(sym);
+    public Double getVariable(String sym) throws UnknownSymbolException {
+        if (!variables.containsKey(sym)) throw new UnknownSymbolException(sym);
         return variables.get(sym).value;
     }
 
@@ -237,8 +224,8 @@ public class FormelInterpreter implements Interpreter {
         return variables;
     }
 
-    private SymbolEntry getEntry(String sym) throws UnknownVariableException {
-        if (!variables.containsKey(sym)) throw new UnknownVariableException(sym);
+    private SymbolEntry getEntry(String sym) throws UnknownSymbolException {
+        if (!variables.containsKey(sym)) throw new UnknownSymbolException(sym);
         return variables.get(sym);
     }
 
@@ -252,8 +239,8 @@ public class FormelInterpreter implements Interpreter {
     }
 
     // Run the equations through the interpreter using the variables present in the HashMap
-    public void calculate() throws IncorrectSyntaxException, UnknownVariableException,
-            IllegalWriteException {
+    public void calculate() throws IncorrectSyntaxException, UnknownSymbolException,
+            IllegalWriteException, DivideByZeroException, OutOfRangeException {
         currentTime = System.currentTimeMillis();
 
         // Iterate through all lines
@@ -281,8 +268,8 @@ public class FormelInterpreter implements Interpreter {
     }
 
     // Returns true if the line started with a keyword and calls the corresponding keyword method
-    private boolean keyword(char ch) throws IncorrectSyntaxException, UnknownVariableException,
-            IllegalWriteException {
+    private boolean keyword(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
+            IllegalWriteException, DivideByZeroException, OutOfRangeException {
         int start_index = index;
 
         // Build potential keyword from letters
@@ -307,8 +294,8 @@ public class FormelInterpreter implements Interpreter {
         }
     }
 
-    private char if_statement(char ch) throws IncorrectSyntaxException, UnknownVariableException,
-            IllegalWriteException {
+    private char if_statement(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
+            IllegalWriteException, DivideByZeroException, OutOfRangeException {
         boolean is_true = comparison(ch);
         ch = read();
 
@@ -327,8 +314,8 @@ public class FormelInterpreter implements Interpreter {
         return ch;
     }
 
-    private boolean comparison(char ch) throws IncorrectSyntaxException, UnknownVariableException,
-            IllegalWriteException {
+    private boolean comparison(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
+            IllegalWriteException, DivideByZeroException, OutOfRangeException {
         double value1 = expression(ch);
         ch = read();
 
@@ -411,15 +398,15 @@ public class FormelInterpreter implements Interpreter {
     }
 
     // Only here for clarity or future expansion
-    private char equation(char ch) throws IncorrectSyntaxException, UnknownVariableException,
-            IllegalWriteException {
+    private char equation(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
+            IllegalWriteException, DivideByZeroException, OutOfRangeException {
         return assignment_statement(ch);
     }
 
     // Assign a value to a variable in the HashMap
     // Syntax: identifier := expression
     private char assignment_statement(char ch) throws IncorrectSyntaxException,
-            UnknownVariableException, IllegalWriteException {
+            UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
         SimpleEntry<String, Double> var = variable(ch);
 
         variableTime = 0;
@@ -444,7 +431,7 @@ public class FormelInterpreter implements Interpreter {
 
     // Build variable name, add to HashMap and retrieve value (null if previously undefined)
     private SimpleEntry<String, Double> variable(char ch) throws IncorrectSyntaxException {
-        if (!Character.isLetter(ch)) throw new IncorrectSyntaxException(line, index);
+        if (!isLetter(ch)) throw new IncorrectSyntaxException(line, index);
 
         // Build variable name from read characters
         String sym = "";
@@ -464,7 +451,8 @@ public class FormelInterpreter implements Interpreter {
     }
 
     // Only here for clarity or future expansion
-    private double expression(char ch) throws IncorrectSyntaxException, UnknownVariableException {
+    private double expression(char ch) throws IncorrectSyntaxException,
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
         return simple_expression(ch);
     }
 
@@ -472,7 +460,7 @@ public class FormelInterpreter implements Interpreter {
     // - term
     // - simple expression followed by adding operator (+/-) and another simple expression
     private double simple_expression(char ch) throws IncorrectSyntaxException,
-            UnknownVariableException {
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
         double result = term(ch);
 
         // Interpret +/- signs used for addition/subtraction
@@ -488,12 +476,14 @@ public class FormelInterpreter implements Interpreter {
 
     // Apply adding operator to first simple expression and second simple expression
     private double adding_operator(char ch, double result) throws IncorrectSyntaxException,
-            UnknownVariableException {
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
         char ch2 = ch;
         ch = next();
         while (ch == ' ') ch = next();
         if (ch2 == '+') result = result + term(ch);
         else result = result - term(ch);
+
+        if (result == Double.MIN_VALUE || result == Double.MAX_VALUE) throw new OutOfRangeException(line, index);
 
         return result;
     }
@@ -501,7 +491,8 @@ public class FormelInterpreter implements Interpreter {
     // Term can be either
     // - factor
     // - factor followed by multiplying operator (* or /) and another term
-    private double term(char ch) throws IncorrectSyntaxException, UnknownVariableException {
+    private double term(char ch) throws IncorrectSyntaxException,
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
         double result = factor(ch);
 
         ch = read();
@@ -516,17 +507,24 @@ public class FormelInterpreter implements Interpreter {
 
     // Apply multiplying operator (* or /) to first factor and new term
     private double multiplying_operator(char ch, double result) throws IncorrectSyntaxException,
-            UnknownVariableException {
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
         char ch2 = ch;
         ch = next();
         while (ch == ' ') ch = next();
         if (ch2 == '*') result = result * factor(ch);
-        else result = result / factor(ch);
+        else {
+            double divisor = factor(ch);
+            if (divisor == 0) throw new DivideByZeroException(line, index);
+            result = result / divisor;
+        }
+
+        if (result == Double.MIN_VALUE || result == Double.MAX_VALUE) throw new OutOfRangeException(line, index);
 
         return result;
     }
 
-    private double factor(char ch) throws IncorrectSyntaxException, UnknownVariableException {
+    private double factor(char ch) throws IncorrectSyntaxException,
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
         // Interpret for +/- sign before term
         double s = 1;
         if (ch == '+' || ch == '-') {
@@ -539,7 +537,7 @@ public class FormelInterpreter implements Interpreter {
         // If the first character is a letter, it's a variable
         if (isLetter(ch)) {
             SimpleEntry<String, Double> var = variable(ch);
-            if (var.getValue() == null) throw new UnknownVariableException(var.getKey());
+            if (var.getValue() == null) throw new UnknownSymbolException(var.getKey());
             result = var.getValue();
         }
 
@@ -559,7 +557,11 @@ public class FormelInterpreter implements Interpreter {
         ch = read();
         while (ch == ' ') ch = next();
 
-        return s * result;
+        result = s * result;
+
+        if (result == Double.MIN_VALUE || result == Double.MAX_VALUE) throw new OutOfRangeException(line, index);
+
+        return result;
     }
 
     private double sign(char ch) {
@@ -573,7 +575,7 @@ public class FormelInterpreter implements Interpreter {
         return result;
     }
 
-    private double unsigned_constant(char ch) {
+    private double unsigned_constant(char ch) throws OutOfRangeException {
         String result = "";
 
         // Build number from digits
@@ -597,6 +599,7 @@ public class FormelInterpreter implements Interpreter {
         // Though unlikely to be reached, it would probably be best to implement additional checks
         // following the conversion to ensure the value did not exceed the range permissible for a
         // double (i.e. the result is between Double.MIN_VALUE and Double.MAX_VALUE and is not INF)
+
         return Double.parseDouble(result);
     }
 }

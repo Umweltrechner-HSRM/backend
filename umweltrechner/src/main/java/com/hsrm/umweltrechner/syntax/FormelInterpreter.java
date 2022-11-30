@@ -1,20 +1,18 @@
 package com.hsrm.umweltrechner.syntax;
 
+import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-//import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Component;
 
-//import lombok.Data;
+import lombok.Data;
 
-//@Component("FormelInterpreter")
+@Component("FormelInterpreter")
 
 public class FormelInterpreter implements Interpreter {
 
-    //@Data
+    @Data
     public static class SymbolEntry {
         Double value;
         boolean readOnly;
@@ -56,7 +54,7 @@ public class FormelInterpreter implements Interpreter {
     }
 
     public FormelInterpreter() {
-        this.equations = new char[0]['\n'];
+        this.equations = new char[1]['\n'];
     }
 
     // Get next character
@@ -149,7 +147,7 @@ public class FormelInterpreter implements Interpreter {
 
     // Check that the syntax is valid by doing one calculation run with a second interpreter instance
     public void checkSyntax(String newEquations) throws IncorrectSyntaxException,
-            UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+            UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException {
         FormelInterpreter tester = new FormelInterpreter(newEquations, true);
         for (Map.Entry<String, SymbolEntry> entry : variables.entrySet()) {
             try {
@@ -240,7 +238,7 @@ public class FormelInterpreter implements Interpreter {
 
     // Run the equations through the interpreter using the variables present in the HashMap
     public void calculate() throws IncorrectSyntaxException, UnknownSymbolException,
-            IllegalWriteException, DivideByZeroException, OutOfRangeException {
+            IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException {
         currentTime = System.currentTimeMillis();
 
         // Iterate through all lines
@@ -269,7 +267,7 @@ public class FormelInterpreter implements Interpreter {
 
     // Returns true if the line started with a keyword and calls the corresponding keyword method
     private boolean keyword(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
-            IllegalWriteException, DivideByZeroException, OutOfRangeException {
+            IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException {
         int start_index = index;
 
         // Build potential keyword from letters
@@ -295,8 +293,17 @@ public class FormelInterpreter implements Interpreter {
     }
 
     private char if_statement(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
-            IllegalWriteException, DivideByZeroException, OutOfRangeException {
-        boolean is_true = comparison(ch);
+            IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException {
+        boolean is_true;
+        if (ch == '(') {
+            ch = next();
+            while (ch == ' ') ch = next();
+            is_true = comparison(ch);
+            ch = read();
+            if (ch != ')') throw new IncorrectSyntaxException(line, index);
+
+        }
+        is_true = comparison(ch);
         ch = read();
 
         // If statements are always followed by a goto statement
@@ -315,7 +322,7 @@ public class FormelInterpreter implements Interpreter {
     }
 
     private boolean comparison(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
-            IllegalWriteException, DivideByZeroException, OutOfRangeException {
+            IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException {
         double value1 = expression(ch);
         ch = read();
 
@@ -399,14 +406,14 @@ public class FormelInterpreter implements Interpreter {
 
     // Only here for clarity or future expansion
     private char equation(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
-            IllegalWriteException, DivideByZeroException, OutOfRangeException {
+            IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException {
         return assignment_statement(ch);
     }
 
     // Assign a value to a variable in the HashMap
     // Syntax: identifier := expression
     private char assignment_statement(char ch) throws IncorrectSyntaxException,
-            UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+            UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException {
         SimpleEntry<String, Double> var = variable(ch);
 
         variableTime = 0;
@@ -452,7 +459,7 @@ public class FormelInterpreter implements Interpreter {
 
     // Only here for clarity or future expansion
     private double expression(char ch) throws IncorrectSyntaxException,
-            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
         return simple_expression(ch);
     }
 
@@ -460,7 +467,7 @@ public class FormelInterpreter implements Interpreter {
     // - term
     // - simple expression followed by adding operator (+/-) and another simple expression
     private double simple_expression(char ch) throws IncorrectSyntaxException,
-            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
         double result = term(ch);
 
         // Interpret +/- signs used for addition/subtraction
@@ -476,7 +483,7 @@ public class FormelInterpreter implements Interpreter {
 
     // Apply adding operator to first simple expression and second simple expression
     private double adding_operator(char ch, double result) throws IncorrectSyntaxException,
-            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
         char ch2 = ch;
         ch = next();
         while (ch == ' ') ch = next();
@@ -492,7 +499,7 @@ public class FormelInterpreter implements Interpreter {
     // - factor
     // - factor followed by multiplying operator (* or /) and another term
     private double term(char ch) throws IncorrectSyntaxException,
-            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
         double result = factor(ch);
 
         ch = read();
@@ -507,12 +514,23 @@ public class FormelInterpreter implements Interpreter {
 
     // Apply multiplying operator (* or /) to first factor and new term
     private double multiplying_operator(char ch, double result) throws IncorrectSyntaxException,
-            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
         char ch2 = ch;
         ch = next();
-        while (ch == ' ') ch = next();
-        if (ch2 == '*') result = result * factor(ch);
+        if (ch2 == '*') {
+            if (ch == '*') {
+                ch = next();
+                while (ch == ' ') ch = next();
+                double fact = factor(ch);
+                if (result < 0 && fact % 1 != 0) throw new DomainException("Root of negative number");
+                result = Math.pow(result, fact);
+            } else {
+                while (ch == ' ') ch = next();
+                result = result * factor(ch);
+            }
+        }
         else {
+            while (ch == ' ') ch = next();
             double divisor = factor(ch);
             if (divisor == 0) throw new DivideByZeroException(line, index);
             result = result / divisor;
@@ -524,7 +542,7 @@ public class FormelInterpreter implements Interpreter {
     }
 
     private double factor(char ch) throws IncorrectSyntaxException,
-            UnknownSymbolException, DivideByZeroException, OutOfRangeException {
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
         // Interpret for +/- sign before term
         double s = 1;
         if (ch == '+' || ch == '-') {
@@ -534,17 +552,37 @@ public class FormelInterpreter implements Interpreter {
 
         double result;
 
-        // If the first character is a letter, it's a variable
+        // If the first character is a letter, it's either a method or a variable
         if (isLetter(ch)) {
-            SimpleEntry<String, Double> var = variable(ch);
-            if (var.getValue() == null) throw new UnknownSymbolException(var.getKey());
-            result = var.getValue();
+            int currentIndex = index;
+
+            // Check if symbol is method or variable
+            String sym = "";
+            while (isLetter(ch) || isDigit(ch)) {
+                sym = sym + ch;
+                ch = next();
+            }
+            // If the symbol is followed by opening parenthesis, it's a method
+            // Otherwise it's a variable
+            if (ch == '(') {
+                index = currentIndex;
+                ch = read();
+
+                result = method(ch);
+            } else {
+                index = currentIndex;
+                ch = read();
+
+                SimpleEntry<String, Double> var = variable(ch);
+                if (var.getValue() == null) throw new UnknownSymbolException(var.getKey());
+                result = var.getValue();
+            }
         }
 
         // If the first character is a digit, it's a number
         else if (isDigit(ch)) result = unsigned_constant(ch);
 
-            // If the first character is a opening parenthesis, it's an enclosed expression
+        // If the first character is an opening parenthesis, it's an enclosed expression
         else if (ch == '(') {
             ch = next();
             while (ch == ' ') ch = next();
@@ -552,7 +590,18 @@ public class FormelInterpreter implements Interpreter {
             ch = read();
             if (ch == ')') ch = next();
             else throw new IncorrectSyntaxException(line, index);
-        } else throw new IncorrectSyntaxException(line, index);
+        }
+
+        // If the first character is a line, it's an enclosed positive expression
+        else if (ch == '|') {
+            ch = next();
+            while (ch == ' ') ch = next();
+            result = Math.abs(expression(ch));
+            ch = read();
+            if (ch == '|') ch = next();
+            else throw new IncorrectSyntaxException(line, index);
+        }
+        else throw new IncorrectSyntaxException(line, index);
 
         ch = read();
         while (ch == ' ') ch = next();
@@ -575,6 +624,64 @@ public class FormelInterpreter implements Interpreter {
         return result;
     }
 
+    private double method(char ch) throws IncorrectSyntaxException,
+            DivideByZeroException, DomainException, UnknownSymbolException, OutOfRangeException {
+        // Read symbol name
+        String sym = "";
+        while (isLetter(ch) || isDigit(ch)) {
+            sym = sym + ch;
+            ch = next();
+        }
+
+        ch = next(); // read opening parenthesis
+        while (ch == ' ') ch = next();
+
+        // Queue of read parameters
+        LinkedList<Double> param = new LinkedList<>();
+        param.push(expression(ch));
+
+        // Read parameters and add them to the queue
+        ch = read();
+        while (ch == ',') {
+            ch = next();
+            while (ch == ' ') ch = next();
+            param.push(expression(ch));
+        }
+        ch = read();
+        if (ch == ')') ch = next();
+        else throw new IncorrectSyntaxException(line, index);
+
+        // Call the corresponding method
+        if (param.size() == 1) {
+            switch (sym) {
+                case "sin": return Math.sin(param.pop());
+                case "cos": return Math.cos(param.pop());
+                case "tan": return Math.tan(param.pop());
+                case "asin": return Math.asin(param.pop());
+                case "acos": return Math.acos(param.pop());
+                case "atan": return Math.atan(param.pop());
+                case "sqrt": {
+                    if (param.peek() < 0) throw new DomainException("Square root of negative number");
+                    return Math.sqrt(param.pop());
+                }
+                case "abs": return Math.abs(param.pop());
+                case "floor": return Math.floor(param.pop());
+                case "ceil": return Math.ceil(param.pop());
+                case "ln": return Math.log(param.pop()); // log e
+                case "log": return Math.log10(param.pop()); //log 10
+                default: throw new UnknownSymbolException(sym);
+            }
+        }
+        else if (param.size() == 2) {
+            switch (sym) {
+                case "min": return Math.min(param.pop(), param.pop());
+                case "max": return Math.max(param.pop(), param.pop());
+                default: throw new UnknownSymbolException(sym);
+            }
+        }
+        else throw new IncorrectSyntaxException(line, index);
+    }
+
     private double unsigned_constant(char ch) throws OutOfRangeException {
         String result = "";
 
@@ -585,7 +692,7 @@ public class FormelInterpreter implements Interpreter {
         }
 
         // Allow decimals, separated by a period or a comma
-        if (ch == '.' || ch == ',') {
+        if (ch == '.') { // if (ch == '.' || ch == ',') {
             result = result + '.';
             ch = next();
             while (isDigit(ch)) {

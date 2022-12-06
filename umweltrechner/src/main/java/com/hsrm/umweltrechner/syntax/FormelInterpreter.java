@@ -280,15 +280,18 @@ public class FormelInterpreter implements Interpreter {
 
         // Jump to beginning of line and return false if not a keyword
         switch (sym) {
-            case "if":
+            case "if" -> {
                 ch = if_statement(ch);
                 return true;
-            case "goto":
+            }
+            case "goto" -> {
                 ch = goto_label(ch);
                 return true;
-            default:
+            }
+            default -> {
                 index = start_index;
                 return false;
+            }
         }
     }
 
@@ -298,13 +301,13 @@ public class FormelInterpreter implements Interpreter {
         if (ch == '(') {
             ch = next();
             while (ch == ' ') ch = next();
-            is_true = comparison(ch);
+            is_true = condition(ch);
             ch = read();
             if (ch != ')') throw new IncorrectSyntaxException(line, index);
-
+        } else {
+            is_true = condition(ch);
+            ch = read();
         }
-        is_true = comparison(ch);
-        ch = read();
 
         // If statements are always followed by a goto statement
         String sym = "";
@@ -319,6 +322,90 @@ public class FormelInterpreter implements Interpreter {
         // Only execute goto statement if comparison returned true
         if (is_true) return goto_label(ch);
         return ch;
+    }
+
+    // Only here for clarity or future expansion
+    private boolean condition(char ch) throws IncorrectSyntaxException,
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException, IllegalWriteException {
+        return disjunction(ch);
+    }
+
+    // Simple expression can be either
+    // - term
+    // - simple expression followed by adding operator (+/-) and another simple expression
+    private boolean disjunction(char ch) throws IncorrectSyntaxException,
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException, IllegalWriteException {
+        boolean result = conjunction(ch);
+
+        // Interpret +/- signs used for addition/subtraction
+        ch = read();
+        while (ch == '|') {
+            ch = next();
+            if (ch == '|') {
+                ch = next();
+                while (ch == ' ') ch = next();
+                result = conjunction(ch) || result;
+                ch = read();
+            } else throw new IncorrectSyntaxException(line, index);
+        }
+        while (ch == ' ') ch = next();
+
+        return result;
+    }
+
+    // Term can be either
+    // - factor
+    // - factor followed by multiplying operator (* or /) and another term
+    private boolean conjunction(char ch) throws IncorrectSyntaxException,
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException, IllegalWriteException {
+        boolean result = bool(ch);
+
+        ch = read();
+        while (ch == '&') {
+            ch = next();
+            if (ch == '&') {
+                ch = next();
+                while (ch == ' ') ch = next();
+                result = result && bool(ch);
+                ch = read();
+            } else throw new IncorrectSyntaxException(line, index);
+        }
+        while (ch == ' ') ch = next();
+
+        return result;
+    }
+
+    private boolean bool(char ch) throws IncorrectSyntaxException,
+            UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException, IllegalWriteException {
+        // Interpret for +/- sign before term
+        boolean s = true;
+
+        if (ch == '!') {
+            s = false;
+            ch = next();
+            while (ch == ' ') ch = next();
+        }
+
+        boolean result;
+
+        // If the first character is an opening parenthesis, it's an enclosed expression
+        if (ch == '(') {
+            ch = next();
+            while (ch == ' ') ch = next();
+            result = disjunction(ch);
+            ch = read();
+            if (ch == ')') ch = next();
+            else throw new IncorrectSyntaxException(line, index);
+        } else {
+            result = comparison(ch);
+        }
+
+        ch = read();
+        while (ch == ' ') ch = next();
+
+        result = s && result;
+
+        return result;
     }
 
     private boolean comparison(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
@@ -582,7 +669,7 @@ public class FormelInterpreter implements Interpreter {
         // If the first character is a digit, it's a number
         else if (isDigit(ch)) result = unsigned_constant(ch);
 
-        // If the first character is an opening parenthesis, it's an enclosed expression
+            // If the first character is an opening parenthesis, it's an enclosed expression
         else if (ch == '(') {
             ch = next();
             while (ch == ' ') ch = next();
@@ -638,20 +725,31 @@ public class FormelInterpreter implements Interpreter {
 
         // Queue of read parameters
         LinkedList<Double> param = new LinkedList<>();
-        param.push(expression(ch));
 
-        // Read parameters and add them to the queue
-        ch = read();
-        while (ch == ',') {
-            ch = next();
-            while (ch == ' ') ch = next();
+        if (ch != ')') {
             param.push(expression(ch));
-        }
-        ch = read();
-        if (ch == ')') ch = next();
-        else throw new IncorrectSyntaxException(line, index);
 
+            // Read parameters and add them to the queue
+            ch = read();
+            while (ch == ',') {
+                ch = next();
+                while (ch == ' ') ch = next();
+                param.push(expression(ch));
+            }
+            ch = read();
+            if (ch == ')') ch = next();
+            else throw new IncorrectSyntaxException(line, index);
+        } else {
+            ch = next();
+        }
         // Call the corresponding method
+        if (param.size() == 0) {
+            return switch (sym) {
+                case "PI" -> Math.PI;
+                case "E" -> Math.E;
+                default -> throw new UnknownSymbolException(sym);
+            };
+        }
         if (param.size() == 1) {
             switch (sym) {
                 case "sin": return Math.sin(param.pop());
@@ -673,11 +771,11 @@ public class FormelInterpreter implements Interpreter {
             }
         }
         else if (param.size() == 2) {
-            switch (sym) {
-                case "min": return Math.min(param.pop(), param.pop());
-                case "max": return Math.max(param.pop(), param.pop());
-                default: throw new UnknownSymbolException(sym);
-            }
+            return switch (sym) {
+                case "min" -> Math.min(param.pop(), param.pop());
+                case "max" -> Math.max(param.pop(), param.pop());
+                default -> throw new UnknownSymbolException(sym);
+            };
         }
         else throw new IncorrectSyntaxException(line, index);
     }

@@ -33,8 +33,7 @@ public class FormelInterpreterTest {
     }
 
     @Test
-    public void TestMinValue() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException, InvalidSymbolException {
+    public void TestMinValue() throws InterpreterException, InvalidSymbolException, DomainException {
         formel = """
                 x := s1 * 2
                 x := x / 2
@@ -66,7 +65,7 @@ public class FormelInterpreterTest {
 
     @Test
     public void TestMaxValue() throws UnknownSymbolException,
-            IllegalWriteException, IncorrectSyntaxException, DivideByZeroException, OutOfRangeException, InvalidSymbolException {
+            IllegalWriteException, IncorrectSyntaxException, DivideByZeroException, OutOfRangeException, InvalidSymbolException, DomainException {
         formel = """
                 x := s1 / 2
                 x := x * 2
@@ -130,8 +129,7 @@ public class FormelInterpreterTest {
     }
 
     @Test
-    public void EmptyString() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void EmptyString() throws InterpreterException, DomainException {
         formel = "";
         f.setEquations(formel);
         f.calculate();
@@ -141,8 +139,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void EasyAssignment1() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void EasyAssignment1() throws InterpreterException {
         formel = "x := 2";
         f.setEquations(formel);
         f.calculate();
@@ -153,8 +150,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void EasyAssignment2() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void EasyAssignment2() throws InterpreterException {
         formel = """
             x := 1
             Y := 3
@@ -169,8 +165,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void EasyCalculating1() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void EasyCalculating1() throws InterpreterException {
         formel = """
               x := 3
               _y := x + 1
@@ -187,9 +182,8 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void EasyCalculating2() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
-        formel = "a := 1.5 * 2 + 1,5";
+    public void EasyCalculating2() throws InterpreterException {
+        formel = "a := 1.5 * 2 + 1.5";
         f.setEquations(formel);
         f.calculate();
         result.put("a", 4.5);
@@ -199,8 +193,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void CalculateWithSigns1() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void CalculateWithSigns1() throws InterpreterException {
         formel = """
             d := -2 * 3 + +2
             """;
@@ -213,8 +206,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void CalculateWithSigns2() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void CalculateWithSigns2() throws InterpreterException {
         formel = """
             d := -1 * -1 * -1 * -1 + 5
             """;
@@ -227,8 +219,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void CalculateWithSigns3() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void CalculateWithSigns3() throws InterpreterException {
         formel = """
             d := -1 * - (2 + 5)
             """;
@@ -241,8 +232,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void EasyEquation1() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void EasyEquation1() throws InterpreterException {
         formel = """
             y := 2
             e := 1 + 2 + 3 * 4 * y
@@ -257,8 +247,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void EasyEquation2() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void EasyEquation2() throws InterpreterException {
         formel = """
             e := 1 + 2 + 3 * 4 * 4 * 3 * 2
             """;
@@ -271,8 +260,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void DifficultEquation1() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void DifficultEquation1() throws InterpreterException {
         formel = "x := 2 - (2-3) * (2 - 4) * (2 - 12)";
         f.setEquations(formel);
         f.calculate();
@@ -283,8 +271,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void DifficultEquation2() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void DifficultEquation2() throws InterpreterException {
         formel = """
                 y:= 10
                 x := 2 + (2 - 4) * (5 - 1000 / y) + 23
@@ -298,8 +285,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void Comment1() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void Comment1() throws InterpreterException {
         formel = " //Kommentar";
         f.setEquations(formel);
         f.calculate();
@@ -308,8 +294,7 @@ public class FormelInterpreterTest {
     }
 
     @Test
-    public void Comment2() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void Comment2() throws InterpreterException {
         formel = "x  := 5 // Noch ein Kommentar //Hallo";
         f.setEquations(formel);
         f.calculate();
@@ -319,8 +304,7 @@ public class FormelInterpreterTest {
     }
 
     @Test
-    public void Comment3() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void Comment3() throws InterpreterException {
         formel = """
             x:=5 //comment
             y:=6
@@ -338,8 +322,7 @@ public class FormelInterpreterTest {
     }
 
     @Test
-    public void Goto1() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void Goto1() throws InterpreterException {
         formel = """
             x:= 5
             y:= 6
@@ -358,8 +341,7 @@ public class FormelInterpreterTest {
     }
 
     @Test
-    public void Goto2() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void Goto2() throws InterpreterException {
         formel = """
             x:= 5
             y:= 6
@@ -380,8 +362,7 @@ public class FormelInterpreterTest {
     }
 
     @Test
-    public void Goto3() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void Goto3() throws InterpreterException {
         formel = """
             x:= 5
             y:= 7
@@ -400,8 +381,7 @@ public class FormelInterpreterTest {
     }
 
     @Test
-    public void IfGoto1() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void IfGoto1() throws InterpreterException {
         formel = """
             x:= 10
             y:= 5
@@ -420,8 +400,7 @@ public class FormelInterpreterTest {
     }
 
     @Test
-    public void IfGoto2() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void IfGoto2() throws InterpreterException {
         formel = """
             x1:= 10
             x2:= 2
@@ -444,8 +423,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void IfGoto3() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void IfGoto3() throws InterpreterException {
         formel = """
             x:= 8
             y:= 6
@@ -465,8 +443,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void IfGoto4() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void IfGoto4() throws InterpreterException {
         formel = """
             x:= 5
             y:= 5
@@ -490,8 +467,7 @@ public class FormelInterpreterTest {
 
 
     @Test
-    public void IfGoto5() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void IfGoto5() throws InterpreterException {
         formel = """
             x:= 10
             y:= 10
@@ -568,24 +544,23 @@ public class FormelInterpreterTest {
     @Test
     public void IncorrectSyntax4() throws UnknownSymbolException, IncorrectSyntaxException, IllegalWriteException {
         formel = """
-                x:=3
-                if 3 <= 5 goto l1  // true
-                y:= y + x         // skip
-                :label1
-                z:= 10
-                x:= x + 1
-                """;
+            x:=3
+            if 3 <= 5 goto l1  // true
+            y:= y + x         // skip
+            :label1
+            z:= 10
+            x:= x + 1
+    """;
         f.setEquations(formel);
 
         Exception exception = assertThrows(IncorrectSyntaxException.class, f::calculate);
-        assertEquals("Incorrect syntax at line "+ 2 +" and character " + 20, exception.getMessage());
+        assertEquals("Incorrect syntax at line "+ 2 +" and character " + 28, exception.getMessage());
 
     }
 
 
     @Test
-    public void PerformanceTest() throws UnknownSymbolException,
-            IncorrectSyntaxException, IllegalWriteException, DivideByZeroException, OutOfRangeException {
+    public void PerformanceTest() throws InterpreterException {
         formel = """
             x1:= 1 // comment
             x2:= x1 + 1 // comment
@@ -623,8 +598,8 @@ public class FormelInterpreterTest {
             x34:= 2 * 3 * 4 + 10 // comment
             x35:= 5 * 5 + 10 // comment
             x36:= 6 * (3*2) // comment
-            x37:= 7,4 * 5 // comment
-            x38:= 9,5 * 4 // comment
+            x37:= 7.4 * 5 // comment
+            x38:= 9.5 * 4 // comment
             x39:= 2 * 15 + 9 // comment
             x40:= 40 / (8 * 5) * 40 // comment
             x41:= 4 * 10 + 1 // comment

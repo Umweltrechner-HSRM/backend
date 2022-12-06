@@ -11,7 +11,7 @@ public interface Interpreter {
 
     // Manually check the syntax of a given String object
     void checkSyntax(String equations) throws IncorrectSyntaxException,
-            UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException;
+            UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException;
 
     // Set the sensors (read-only variables) to be used by the interpreter
     // Replaces existing values for sensors that are kept and adds/removes sensors to match new list
@@ -32,7 +32,7 @@ public interface Interpreter {
 
     // Perform calculations (interpret previously input equations)
     void calculate() throws IncorrectSyntaxException,
-            UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException;
+            UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException;
 
     // Get all variables as name-value-pairs
     HashMap<String, Double> getVariables();

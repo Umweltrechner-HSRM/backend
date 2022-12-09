@@ -1,5 +1,6 @@
 package com.hsrm.umweltrechner.services;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -56,18 +57,24 @@ public class FormulaInterpreterService {
         interpreter.setEquations(formula.getFormula());
         interpreter.calculate();
 
-        // update variables table
-        // if variable is in interpreter.variables() but not in table, insert it
-        // if variable is in table but not in interpreter.variables(), delete it? (threshold will
-        // be removed from table)
         List<String> variables = getVariableNames();
-        List<Variable> variableFromTable = variablesMapper.selectAll();
+        List<Variable> variablesFromTable = variablesMapper.selectAll();
+        List<String> nameOfVariablesInTable = new ArrayList<>();
 
-
-
-
-
-
+        for (var variableFromTable : variablesFromTable){
+          nameOfVariablesInTable.add(variableFromTable.getName());
+        }
+        for (var variable : variables){
+          if (!nameOfVariablesInTable.contains(variable)){
+            variablesMapper.insert(
+                Variable.builder().name(variable).maxThreshold(null).minThreshold(null).build());
+          }
+        }
+        for (var variable : nameOfVariablesInTable){
+          if (!variables.contains(variable)){
+            variablesMapper.deleteByName(variable);
+          }
+        }
       } catch (Exception e) {
         log.error("Error while parsing formula " + formula.getFormula(), e);
       }

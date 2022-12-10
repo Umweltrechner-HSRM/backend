@@ -56,29 +56,29 @@ public class FormulaInterpreterService {
         interpreter.checkSyntax(formula.getFormula());
         interpreter.setEquations(formula.getFormula());
         interpreter.calculate();
-
-        List<String> variables = getVariableNames();
-        List<Variable> variablesFromTable = variablesMapper.selectAll();
-        List<String> nameOfVariablesInTable = new ArrayList<>();
-
-        for (var variableFromTable : variablesFromTable){
-          nameOfVariablesInTable.add(variableFromTable.getName());
-        }
-        for (var variable : variables){
-          if (!nameOfVariablesInTable.contains(variable)){
-            variablesMapper.insert(
-                Variable.builder().name(variable).maxThreshold(null).minThreshold(null).build());
-          }
-        }
-        for (var variable : nameOfVariablesInTable){
-          if (!variables.contains(variable)){
-            variablesMapper.deleteByName(variable);
-          }
-        }
       } catch (Exception e) {
         log.error("Error while parsing formula " + formula.getFormula(), e);
       }
     });
+
+    List<String> variables = getVariableNames();
+    List<Variable> variablesFromTable = variablesMapper.selectAll();
+    List<String> nameOfVariablesInTable = new ArrayList<>();
+
+    for (var variableFromTable : variablesFromTable){
+      nameOfVariablesInTable.add(variableFromTable.getName());
+    }
+    for (var variable : variables){
+      if (!nameOfVariablesInTable.contains(variable)){
+        variablesMapper.insert(
+            Variable.builder().name(variable).maxThreshold(null).minThreshold(null).build());
+      }
+    }
+    for (var variable : nameOfVariablesInTable){
+      if (!variables.contains(variable)){
+        variablesMapper.deleteByName(variable);
+      }
+    }
   }
 
   public void addSensorValue(String sensorName, Double value, Long ts) {

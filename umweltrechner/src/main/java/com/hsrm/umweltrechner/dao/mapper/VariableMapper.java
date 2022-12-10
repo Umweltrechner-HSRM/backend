@@ -13,4 +13,8 @@ public interface VariableMapper {
   int deleteByName(String name);
 
   int insert(Variable variable);
+
+  Variable update(String name, double minTreshold, double maxTreshold);
+
+  Variable selectByName(String name);
 }

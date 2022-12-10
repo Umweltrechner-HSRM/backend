@@ -22,7 +22,7 @@
         FROM variable
     </select>
 
-    <update id="update" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
+    <update id="updateVariable" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
         UPDATE variable
         SET minThreshold = #{minThreshold,jdbcType=DOUBLE}, maxThreshold = #{maxThreshold,jdbcType=DOUBLE}
         WHERE name = #{name,jdbcType=VARCHAR}

@@ -2,6 +2,7 @@ package com.hsrm.umweltrechner.dao.mapper;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.hsrm.umweltrechner.dao.model.Variable;
@@ -14,7 +15,7 @@ public interface VariableMapper {
 
   int insert(Variable variable);
 
-  Variable update(String name, double minTreshold, double maxTreshold);
+  void updateVariable(String name, double minThreshold, double maxThreshold);
 
   Variable selectByName(String name);
 }

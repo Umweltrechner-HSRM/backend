@@ -1,7 +1,0 @@
-package com.hsrm.umweltrechner.syntax;
-
-public class DomainException extends InterpreterException {
-    public DomainException(String message) {
-        super(message);
-    }
-}

@@ -26,6 +26,8 @@ public class FormulaInterpreterService {
   @Qualifier("FormelInterpreter")
   private final Interpreter interpreter;
 
+  private final VariableService variableService;
+
   private final SensorMapper sensorMapper;
 
   private final FormulaMapper formulaMapper;
@@ -36,10 +38,11 @@ public class FormulaInterpreterService {
   @Autowired
   public FormulaInterpreterService(
       Interpreter formulaInterpreter,
-      SensorMapper sensorMapper,
+      VariableService variableService, SensorMapper sensorMapper,
       FormulaMapper formulaMapper,
       VariableMapper variablesMapper) {
     this.interpreter = formulaInterpreter;
+    this.variableService = variableService;
     this.sensorMapper = sensorMapper;
     this.formulaMapper = formulaMapper;
     this.variablesMapper = variablesMapper;
@@ -48,7 +51,7 @@ public class FormulaInterpreterService {
   @PostConstruct
   private void init() {
     sensorMapper.selectAll().forEach(sensor -> {
-      double value = sensor.getValue() != null ? sensor.getValue() : (double) 0xBabeCafe;
+      double value = sensor.getValue() != null ? sensor.getValue() : (double) 10.0;
       interpreter.addSensor(sensor.getName(), value);
     });
     formulaMapper.selectAll().forEach(formula -> {
@@ -100,6 +103,14 @@ public class FormulaInterpreterService {
     }
     try {
       interpreter.calculate();
+      List<Variable> variableList = variableService.getAllVariables();
+      for (var variable: variableList){
+        if (
+            interpreter.getVariables().get(variable.getName()) <= variable.getMinThreshold()
+                || interpreter.getVariables().get(variable.getName()) >= variable.getMaxThreshold()){
+          log.info("reaktor {} explodiert amk", variable.getName());
+        }
+      }
       // compare thresholds from variable table with calculated values
       // and send signal
     } catch (Exception e) {

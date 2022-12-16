@@ -1,5 +1,7 @@
 package com.hsrm.umweltrechner.services;
 
+import java.util.List;
+
 import com.hsrm.umweltrechner.dao.mapper.VariableMapper;
 import com.hsrm.umweltrechner.dao.model.Variable;
 import lombok.extern.slf4j.Slf4j;
@@ -19,5 +21,10 @@ public class VariableService {
 
   public void update(String name, double minThreshold, double maxTreshold) {
     variablesMapper.updateVariable(name, minThreshold, maxTreshold);
+  }
+
+  public List<Variable> getAllVariables(){
+    List<Variable> variables = variablesMapper.selectAll();
+    return variables;
   }
 }

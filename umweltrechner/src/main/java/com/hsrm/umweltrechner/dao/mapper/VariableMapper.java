@@ -17,5 +17,4 @@ public interface VariableMapper {
 
   void updateVariable(String name, double minThreshold, double maxThreshold);
 
-  Variable selectByName(String name);
 }

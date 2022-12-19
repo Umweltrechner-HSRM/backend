@@ -73,8 +73,7 @@ public class FormulaInterpreterService {
     }
     for (var variable : variables){
       if (!nameOfVariablesInTable.contains(variable)){
-        variablesMapper.insert(
-            Variable.builder().name(variable).maxThreshold(null).minThreshold(null).build());
+        variablesMapper.insertNewVariableWithName(variable);
       }
     }
     for (var variable : nameOfVariablesInTable){

@@ -11,9 +11,11 @@ import com.hsrm.umweltrechner.dao.model.Variable;
 public interface VariableMapper {
 
   List<Variable> selectAll();
-  int deleteByName(String name);
+  void deleteByName(String name);
 
-  int insert(Variable variable);
+  void insertNewVariableWithName(String name);
+
+  int insert(String name, double minThreshold, double maxThreshold);
 
   void updateVariable(String name, double minThreshold, double maxThreshold);
 

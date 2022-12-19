@@ -19,4 +19,8 @@ public class CustomerAlertsService {
   public void replace(String phone, String email, String name){
     customerAlertsMapper.updateCustomerAlerts(phone, email, name);
   }
+
+  public void insert(String name){
+    customerAlertsMapper.insert(name);
+  }
 }

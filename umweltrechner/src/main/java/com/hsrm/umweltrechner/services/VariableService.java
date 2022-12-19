@@ -19,7 +19,7 @@ public class VariableService {
     this.variablesMapper = variablesMapper;
   }
 
-  public void update(String name, double minThreshold, double maxTreshold) {
+  public void update(String name, Double minThreshold, Double maxTreshold) {
     variablesMapper.updateVariable(name, minThreshold, maxTreshold);
   }
 

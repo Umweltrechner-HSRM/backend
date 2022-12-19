@@ -27,8 +27,4 @@ public class VariableService {
     List<Variable> variables = variablesMapper.selectAll();
     return variables;
   }
-
-  public void insert(Variable variable){
-    variablesMapper.insert(variable.getName(), variable.getMinThreshold(), variable.getMaxThreshold());
-  }
 }

@@ -43,18 +43,9 @@ public class VariableController {
   // Put endpoint to update thresholds
   @PutMapping(value = "/updateThreshold")
   public ResponseEntity<String> updateVariable(@RequestBody DtoVariable variable){
-    List<Variable> variablesFromDto = variable.getVariables();
-    List<Variable> variablesFromDb = variableService.getAllVariables();
-    for (var x : variablesFromDto){
-      // variable gibt es schon ohne threshold und mit threshold
-      if (variablesFromDb.contains(x)){
-        variableService.update(x.getName(), x.getMinThreshold(), x.getMaxThreshold());
-      }
-      // Variable gibt es nicht in Variable Table
-      if (!variablesFromDb.contains(x)){
-        variableService.insert(x);
-      }
-      customerAlertsService.insert(x.getName());
+    List<Variable> variables = variable.getVariables();
+    for (var x : variables){
+      variableService.update(x.getName(), x.getMinThreshold(), x.getMaxThreshold());
       customerAlertsService.replace(variable.getMobile(), variable.getMail(), x.getName());
     }
     return ResponseEntity.ok("updated variable");

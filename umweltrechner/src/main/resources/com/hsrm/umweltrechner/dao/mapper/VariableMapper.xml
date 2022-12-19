@@ -12,11 +12,6 @@
         VALUES (#{name,jdbcType=VARCHAR}, #{minThreshold,jdbcType=DOUBLE}, #{maxThreshold,jdbcType=DOUBLE})
     </insert>
 
-    <insert id="insertNewVariableWithName">
-        INSERT INTO variable (name)
-        VALUES (#{name,jdbcType=VARCHAR})
-    </insert>
-
     <delete id="deleteByName" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
         DELETE FROM variable
         WHERE name = #{name,jdbcType=VARCHAR}

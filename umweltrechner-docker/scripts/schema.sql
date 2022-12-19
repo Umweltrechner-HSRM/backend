@@ -29,6 +29,6 @@ create table if not exists umweltrechner.customeralerts
 (
   phone_number    varchar(50) null,
   email           varchar(255) null,
-  variable_name   varchar(100),
+  variable_name   varchar(100) not null primary key,
   foreign key (variable_name) references variable(name)
 );

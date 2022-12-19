@@ -15,6 +15,6 @@ public interface VariableMapper {
 
   int insert(Variable variable);
 
-  void updateVariable(String name, double minThreshold, double maxThreshold);
+  void updateVariable(String name, Double minThreshold, Double maxThreshold);
 
 }

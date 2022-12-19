@@ -105,10 +105,15 @@ public class FormulaInterpreterService {
       interpreter.calculate();
       List<Variable> variableList = variableService.getAllVariables();
       for (var variable: variableList){
-        if (
-            interpreter.getVariables().get(variable.getName()) <= variable.getMinThreshold()
-                || interpreter.getVariables().get(variable.getName()) >= variable.getMaxThreshold()){
-          log.info("reaktor {} explodiert amk", variable.getName());
+        boolean isDanger = false;
+        if (variable.getMinThreshold() != null && interpreter.getVariables().get(variable.getName()) <= variable.getMinThreshold()) {
+          isDanger = true;
+        }
+        if (variable.getMaxThreshold() != null && interpreter.getVariables().get(variable.getName()) >= variable.getMaxThreshold()) {
+          isDanger = true;
+        }
+        if(isDanger){
+          log.warn("Variable " + variable.getName() + " is in danger!");
         }
       }
       // compare thresholds from variable table with calculated values

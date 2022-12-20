@@ -498,7 +498,7 @@ public class FormelInterpreterTest {
         f.setEquations(formel);
 
         Exception exception = assertThrows(UnknownSymbolException.class, f::calculate);
-        assertEquals("UnknownSymbolException: Symbol 'y' is unknown or has not been initialized (line " + 1 + ", character " + 1 + ")", exception.getMessage());
+        assertEquals("UnknownSymbolException: Symbol 'y' is unknown or has not been initialized (line " + 1 + ", character " + 32 + ")", exception.getMessage());
     }
 
 
@@ -623,6 +623,392 @@ public class FormelInterpreterTest {
         }
 
         assertEquals("Viele Zuweisungen & Rechnungen", result, f.getVariables());
+    }
+
+    @Test
+    public void Potenzen() throws InterpreterException {
+        formel = """
+            z=3**3
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("z", 27.0);
+
+        assertEquals("Potenzen", result, f.getVariables());
+    }
+
+    @Test
+    public void Potenzen2() throws InterpreterException {
+        formel = """
+            w= (1+3)**2
+            x= 10**2
+            y= 2**2
+            z=3**3 + 1
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("w", 16.0);
+        result.put("x", 100.0);
+        result.put("y", 4.0);
+        result.put("z", 28.0);
+
+        assertEquals("Potenzen2", result, f.getVariables());
+    }
+
+    @Test
+    public void MathMethods() throws InterpreterException {
+        formel = """
+            a= sin(90)
+            b= cos(90)
+            c= tan(0.5235987755982988)
+            d= asin(0)
+            e= acos(0.5)
+            f= atan(0.9)
+            g= sqrt(9)
+            h= abs(-3980)
+            i= floor(3.6)
+            j= ceil(3.1)
+            k= ln(2)
+            l= log(1)
+            m= pi()
+            n= e()
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("a", 0.8939966636005579);
+        result.put("b", -0.4480736161291701);
+        result.put("c", 0.5773502691896257);
+        result.put("d", 0.0);
+        result.put("e", 1.0471975511965979);
+        result.put("f", 0.7328151017865066);
+        result.put("g", 3.0);
+        result.put("h", 3980.0);
+        result.put("i", 3.0);
+        result.put("j", 4.0);
+        result.put("k", 0.6931471805599453);
+        result.put("l", 0.0);
+        result.put("m", Math.PI);
+        result.put("n", Math.E);
+
+        assertEquals("Math Bibliothek", result, f.getVariables());
+    }
+
+    @Test
+    public void Betrag() throws InterpreterException {
+        formel = """
+            x= |-10|
+            y= |20|
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("x", 10.0);
+        result.put("y", 20.0);
+
+        assertEquals("Positive Zahlen", result, f.getVariables());
+    }
+
+    @Test
+    public void Operator1() throws InterpreterException {
+        formel = """
+            if 2<3 goto label1
+            w= 3         //skip
+            x= 10*2      //skip
+            :label1
+            y= 2*2
+            z=3*3
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("y", 4.0);
+        result.put("z", 9.0);
+
+        assertEquals("Operator1", result, f.getVariables());
+    }
+
+    @Test
+    public void Operator2() throws InterpreterException {
+        formel = """
+            if 2<3 && 3==3 || 2>3 goto label1
+            x= 10000*2   //skip
+            :label1
+            y= 5678
+            z= 1*2*3*4*5
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("y", 5678.0);
+        result.put("z", 120.0);
+
+        assertEquals("Operator2", result, f.getVariables());
+    }
+
+    @Test
+    public void Operator3() throws InterpreterException {
+        formel = """
+            if 2<=2 && 3<=3 || 4<2 goto label1
+            x= 10000*100   //skip
+            :label1
+            z= 100
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("z", 100.0);
+
+        assertEquals("Operator3", result, f.getVariables());
+    }
+
+    @Test
+    public void Operator4() throws InterpreterException {
+        formel = """
+            if 3==2 || 3<=3 || 1>=1 goto label1
+            x= 10000
+            :label1
+            z= 100
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("z", 100.0);
+
+        assertEquals("Operator4", result, f.getVariables());
+    }
+
+    @Test
+    public void Operator5() throws InterpreterException {
+        formel = """
+            if 3==3 && 100>3 && 10>=1 goto label1
+            x= 10000
+            :label1
+            z= 100
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("z", 100.0);
+
+        assertEquals("Operator5", result, f.getVariables());
+    }
+    // IncorrectSyntax?? ==>    if 3==2 && 3<=3 || 4<2 goto label1
+
+    @Test
+    public void NotOperator1() throws InterpreterException {
+        formel = """
+            if !2==2 goto label1
+            x= 10000
+            :label1
+            z= 100
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("x", 10000.0);
+        result.put("z", 100.0);
+
+        assertEquals("Not Operator 1", result, f.getVariables());
+    }
+    @Test
+    public void NotOperator2() throws InterpreterException {
+        formel = """
+            if !2<2 goto label1
+            x = 10000*100
+            :label1
+            z = 100
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("z", 100.0);
+
+        assertEquals("Not Operator 2", result, f.getVariables());
+    }
+
+    @Test
+    public void NotOperator3() throws InterpreterException {
+        formel = """
+            // !falsch || falsch ==> wahr || falsch
+            if !4<2 || 5>2 goto label1
+            x= 10000
+            :label1
+            z= 100
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("z", 100.0);
+
+        assertEquals("Not Operator 3", result, f.getVariables());
+    }
+
+    @Test
+    public void NotOperator4() throws InterpreterException {
+        //geht nicht: ==>   !2<=2 && 3<=3
+        formel = """
+            if !2<=2 || 2==3 goto label1
+            x= 10000   //skip
+            :label1
+            z= 100
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("x", 10000.0);
+        result.put("z", 100.0);
+
+        assertEquals("Not Operator 4", result, f.getVariables());
+    }
+
+    @Test
+    public void NotOperator5() throws InterpreterException {
+        //geht nicht: ==>   !2<=2 && 3<=3 kein &&-Verknüpfung möglich
+        formel = """
+            // !w    || w   ==>   f || w
+            if !2<=2 || 3<=3 goto label1
+            x= 10000   //skip
+            :label1
+            z= 100
+            """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("z", 100.0);
+
+        assertEquals("Not Operator 5", result, f.getVariables());
+    }
+
+    @Test
+    public void AngularFunctions() throws InterpreterException {
+        formel = """
+                a= sin(0.5 * pi()) //90 Grad
+                b= cos(0.25 * pi())
+                c= tan(0.25 * pi()) //
+                """;
+
+        f.setEquations(formel);
+        f.calculate();
+        result.put("a", 1.0);
+        result.put("b", 0.7071067811865476);
+        result.put("c", 0.9999999999999999);
+
+        assertEquals("Winkelfunktionen", result, f.getVariables());
+    }
+
+    @Test
+    public void TanOutOfRange() throws InterpreterException {
+        formel = """
+                x = tan(rad(90)) //Infinity da groesser
+                """;
+
+        f.setEquations(formel);
+
+        Exception ex = assertThrows(OutOfRangeException.class, () -> {
+            f.calculate();
+        });
+
+        formel = """
+                x = tan(rad(-90)) //Infinity da kleiner
+                """;
+
+        f.setEquations(formel);
+
+        ex = assertThrows(OutOfRangeException.class, () -> {
+            f.calculate();
+        });
+    }
+
+    @Test
+    public void ReverseSine() throws InterpreterException {
+        formel = """
+                d= asin(1.1) //NaN da groesser
+                """;
+
+        f.setEquations(formel);
+
+        Exception ex = assertThrows(OutOfRangeException.class, () -> {
+            f.calculate();
+        });
+    }
+
+    @Test
+    public void ReverseCosine() throws InterpreterException {
+        formel = """
+                e= acos(1.1) //NaN da groesser 1
+                """;
+
+        f.setEquations(formel);
+
+        Exception ex = assertThrows(OutOfRangeException.class, () -> {
+            f.calculate();
+        });
+    }
+
+    @Test
+    public void ReverseTangent() throws InterpreterException {
+        formel = """
+                f= atan(2000000000000000000)
+                """;
+
+        f.setEquations(formel);
+        f.calculate();
+        result.put("f", Math.PI* 0.5);
+
+        assertEquals("Arkustangens", result, f.getVariables());
+    }
+
+    @Test
+    public void SquarerootTest() throws InterpreterException {
+        formel = """
+                x = sqrt(-9)
+                """;
+        f.setEquations(formel);
+
+        Exception ex = assertThrows(DomainException.class, () -> {
+            f.calculate();
+        });
+    }
+
+    @Test
+    public void MathMethods2() throws InterpreterException {
+        formel = """
+                            
+                h= abs(-3980)
+                i= floor(3.6)
+                j= ceil(-0.5)
+                k= ln(e())
+                l= log(10)
+                m= pi()
+                n= e()
+                """;
+
+        f.setEquations(formel);
+        f.calculate();
+        result.put("h", 3980.0);
+        result.put("i", 3.0);
+        result.put("j", -0.0);
+        result.put("k", 1.0);
+        result.put("l", 1.0);
+        result.put("m", Math.PI);
+        result.put("n", Math.E);
+
+        assertEquals("Math Bibliothek", result, f.getVariables());
+    }
+
+    @Test
+    public void toDegree() throws InterpreterException{
+        formel = """
+                x = 90
+                y = rad(x)
+                """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("x", 90.0);
+        result.put("y", Math.PI*0.5);
+        assertEquals("Grad in Bogenmass", result, f.getVariables());
+    }
+
+    @Test
+    public void toRadians() throws InterpreterException{
+        formel = """
+                x = pi() * 0.5
+                y = deg(x)
+                """;
+        f.setEquations(formel);
+        f.calculate();
+        result.put("y", 90.0);
+        result.put("x", Math.PI*0.5);
+        assertEquals("Bogenmass in Grad", result, f.getVariables());
     }
 
     @After

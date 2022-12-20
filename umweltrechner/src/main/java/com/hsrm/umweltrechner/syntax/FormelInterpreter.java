@@ -288,12 +288,14 @@ public class FormelInterpreter implements Interpreter {
             ch = skipSpaces();
             conditionTrue = condition(ch);
             ch = read();
-            if (ch != ')')
+            if (ch == ')') next();
+            else
                 throw new IncorrectSyntaxException("Expected ')' but got '"+ch+"'", lineIndex, charIndex);
         } else {
             conditionTrue = condition(ch);
-            ch = read();
         }
+
+        ch = skipSpaces();
 
         // If statements are always followed by a goto statement
         StringBuilder symbol = new StringBuilder();
@@ -367,10 +369,10 @@ public class FormelInterpreter implements Interpreter {
     private boolean bool(char ch) throws IncorrectSyntaxException,
             UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException, IllegalWriteException {
         // Interpret NOT-operator before bool
-        boolean operator = true;
+        boolean negation = false;
 
         if (ch == '!') {
-            operator = false;
+            negation = true;
             next();
             ch = skipSpaces();
         }
@@ -392,7 +394,8 @@ public class FormelInterpreter implements Interpreter {
 
         skipSpaces();
 
-        result = operator && result;
+        if (negation)
+            result = !result;
 
         return result;
     }
@@ -599,7 +602,9 @@ public class FormelInterpreter implements Interpreter {
         else result = result - term(ch);
 
         if (result == Double.MIN_VALUE || result == Double.MAX_VALUE)
-            throw new OutOfRangeException(lineIndex, charIndex);
+            throw new OutOfRangeException(
+                    "Value exceeded permissible range (number too big or too small)", lineIndex, charIndex
+            );
 
         return result;
     }
@@ -648,7 +653,9 @@ public class FormelInterpreter implements Interpreter {
         }
 
         if (result == Double.MIN_VALUE || result == Double.MAX_VALUE)
-            throw new OutOfRangeException(lineIndex, charIndex);
+            throw new OutOfRangeException(
+                    "Value exceeded permissible range (number too big or too small)", lineIndex, charIndex
+            );
 
         return result;
     }
@@ -687,7 +694,7 @@ public class FormelInterpreter implements Interpreter {
                 ch = read();
 
                 SimpleEntry<String, Double> var = variable(ch);
-                if (var.getValue() == null) throw new UnknownSymbolException(var.getKey());
+                if (var.getValue() == null) throw new UnknownSymbolException(var.getKey(), lineIndex, charIndex);
                 result = var.getValue();
             }
         }
@@ -724,7 +731,9 @@ public class FormelInterpreter implements Interpreter {
         result = sign * result;
 
         if (result == Double.MIN_VALUE || result == Double.MAX_VALUE)
-            throw new OutOfRangeException(lineIndex, charIndex);
+            throw new OutOfRangeException(
+                    "Value exceeded permissible range (number too big or too small)", lineIndex, charIndex
+            );
 
         return result;
     }
@@ -783,7 +792,7 @@ public class FormelInterpreter implements Interpreter {
             return switch (symbol.toString()) {
                 case "pi" -> Math.PI;
                 case "e" -> Math.E;
-                default -> throw new UnknownSymbolException(symbol.toString());
+                default -> throw new UnknownSymbolException(symbol.toString(), lineIndex, charIndex);
             };
         }
 
@@ -791,11 +800,24 @@ public class FormelInterpreter implements Interpreter {
             switch (symbol.toString()) {
                 case "sin" -> { return Math.sin(parameters.get(0)); }
                 case "cos" -> { return Math.cos(parameters.get(0)); }
-                // tan: infinity for 90 degrees
-                case "tan" -> { return Math.tan(parameters.get(0)); }
-                // asin: param must be <= 1
-                case "asin" -> { return Math.asin(parameters.get(0)); }
-                case "acos" -> { return Math.acos(parameters.get(0)); }
+                // tan: infinity for -90/90 degrees or -PI/2 or PI/2 radians
+                case "tan" -> {
+                    if (Math.abs(parameters.get(0)) == Math.PI/2)
+                        throw new OutOfRangeException("Value x for tan must be -PI/2 < x < PI/2", lineIndex, charIndex);
+                    return Math.tan(parameters.get(0));
+                }
+                // asin: param must be -1 <= x <= 1
+                case "asin" -> {
+                    if (Math.abs(parameters.get(0)) > 1)
+                        throw new OutOfRangeException("Value x for asin must be -1 <= x <= 1", lineIndex, charIndex);
+                    return Math.asin(parameters.get(0));
+                }
+                // acos: param must be -1 <= x <= 1
+                case "acos" -> {
+                    if (Math.abs(parameters.get(0)) > 1)
+                        throw new OutOfRangeException("Value x for acos must be -1 <= x <= 1", lineIndex, charIndex);
+                    return Math.acos(parameters.get(0));
+                }
                 case "atan" -> { return Math.atan(parameters.get(0)); }
                 case "rad" -> { return Math.toRadians(parameters.get(0)); }
                 case "deg" ->  { return Math.toDegrees(parameters.get(0)); }
@@ -809,7 +831,7 @@ public class FormelInterpreter implements Interpreter {
                 case "ceil" -> { return Math.ceil(parameters.get(0)); }
                 case "ln" -> { return Math.log(parameters.get(0)); } // log e
                 case "log" -> { return Math.log10(parameters.get(0)); } // log 10
-                default -> throw new UnknownSymbolException(symbol.toString());
+                default -> throw new UnknownSymbolException(symbol.toString(), lineIndex, charIndex);
             }
         }
 
@@ -817,7 +839,7 @@ public class FormelInterpreter implements Interpreter {
             return switch (symbol.toString()) {
                 case "min" -> Math.min(parameters.get(0), parameters.get(1));
                 case "max" -> Math.max(parameters.get(0), parameters.get(1));
-                default -> throw new UnknownSymbolException(symbol.toString());
+                default -> throw new UnknownSymbolException(symbol.toString(), lineIndex, charIndex);
             };
         }
 

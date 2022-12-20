@@ -7,12 +7,12 @@ public class IllegalWriteException extends InterpreterException {
     String symbol;
 
     public IllegalWriteException(String symbol, int lineIndex, int charIndex) {
-        super(lineIndex, charIndex, "IllegalWriteException: Can't change value of read-only symbol " + symbol);
+        super("IllegalWriteException: Can't change value of read-only symbol " + symbol, lineIndex, charIndex);
         this.symbol = symbol;
     }
 
     public IllegalWriteException(String symbol) {
-        super(0, 0, "IllegalWriteException: Can't change value of read-only symbol " + symbol);
+        super("IllegalWriteException: Can't change value of read-only symbol " + symbol, -1, -1);
         this.symbol = symbol;
     }
 }

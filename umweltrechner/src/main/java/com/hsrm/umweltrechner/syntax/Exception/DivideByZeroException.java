@@ -5,6 +5,6 @@ package com.hsrm.umweltrechner.syntax.Exception;
  */
 public class DivideByZeroException extends InterpreterException {
     public DivideByZeroException(int lineIndex, int charIndex) {
-        super(lineIndex, charIndex, "DivideByZeroException: Division by zero");
+        super("DivideByZeroException: Division by zero", lineIndex, charIndex);
     }
 }

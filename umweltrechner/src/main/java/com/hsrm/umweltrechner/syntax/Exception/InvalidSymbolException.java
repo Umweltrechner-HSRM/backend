@@ -5,6 +5,6 @@ package com.hsrm.umweltrechner.syntax.Exception;
  */
 public class InvalidSymbolException extends InterpreterException {
     public InvalidSymbolException(String symbol, int lineIndex, int charIndex) {
-        super(lineIndex, charIndex, "InvalidSymbolException: Invalid symbol " + symbol);
+        super("InvalidSymbolException: Invalid symbol " + symbol, lineIndex, charIndex);
     }
 }

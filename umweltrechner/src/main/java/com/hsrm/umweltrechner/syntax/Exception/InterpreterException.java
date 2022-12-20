@@ -12,7 +12,7 @@ public abstract class InterpreterException extends Exception {
     private int line;
     private int character;
 
-    public InterpreterException(int lineIndex, int charIndex, String message) {
+    public InterpreterException(String message, int lineIndex, int charIndex) {
         super(message + " (line " + (lineIndex + 1) + ", character " + (charIndex + 1) + ")");
         this.line = lineIndex + 1;
         this.character = charIndex + 1;

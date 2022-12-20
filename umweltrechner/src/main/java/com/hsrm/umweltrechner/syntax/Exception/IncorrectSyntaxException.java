@@ -5,6 +5,6 @@ package com.hsrm.umweltrechner.syntax.Exception;
  */
 public class IncorrectSyntaxException extends InterpreterException {
     public IncorrectSyntaxException(String message, int lineIndex, int charIndex) {
-        super(lineIndex, charIndex, "IncorrectSyntaxException: " + message);
+        super("IncorrectSyntaxException: " + message, lineIndex, charIndex);
     }
 }

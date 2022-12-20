@@ -6,6 +6,6 @@ package com.hsrm.umweltrechner.syntax.Exception;
  */
 public class DomainException extends InterpreterException {
     public DomainException(String exception, int lineIndex, int charIndex) {
-        super(lineIndex, charIndex, "DomainException: " + exception);
+        super("DomainException: " + exception, lineIndex, charIndex);
     }
 }

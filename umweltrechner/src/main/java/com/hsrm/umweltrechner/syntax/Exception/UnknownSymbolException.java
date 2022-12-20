@@ -9,11 +9,11 @@ public class UnknownSymbolException extends InterpreterException {
     String symbol;
 
     public UnknownSymbolException(String symbol, int lineIndex, int charIndex) {
-        super(lineIndex, charIndex, "UnknownSymbolException: Symbol '"+symbol+"' is unknown or has not been initialized");
+        super("UnknownSymbolException: Symbol '"+symbol+"' is unknown or has not been initialized", lineIndex, charIndex);
         this.symbol = symbol;
     }
 
     public UnknownSymbolException(String symbol) {
-        super(0, 0, "UnknownSymbolException: Symbol '"+symbol+"' is unknown or has not been initialized");
+        super("UnknownSymbolException: Symbol '"+symbol+"' is unknown or has not been initialized", -1, -1);
     }
 }

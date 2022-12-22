@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.hsrm.umweltrechner.dao.model.Sensor;
 import com.hsrm.umweltrechner.services.SensorService;
+import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
+import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
 
 @Controller
 @RequestMapping("/sensor")
@@ -29,7 +31,7 @@ public class SensorController {
 
   @PutMapping
   @PreAuthorize("hasRole('admin')")
-  public ResponseEntity<Sensor> addSensor(@RequestBody Sensor sensor){
+  public ResponseEntity<Sensor> addSensor(@RequestBody Sensor sensor) throws OutOfRangeException, InvalidSymbolException {
     return ResponseEntity.ok(sensorService.addOrUpdateSensor(sensor));
   }
 

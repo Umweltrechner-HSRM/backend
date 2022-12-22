@@ -11,8 +11,15 @@ import org.springframework.stereotype.Service;
 
 import com.hsrm.umweltrechner.dao.mapper.FormulaMapper;
 import com.hsrm.umweltrechner.dao.mapper.SensorMapper;
-import com.hsrm.umweltrechner.syntax.FormelInterpreter;
+import com.hsrm.umweltrechner.syntax.exception.DivideByZeroException;
+import com.hsrm.umweltrechner.syntax.exception.DomainException;
+import com.hsrm.umweltrechner.syntax.exception.IllegalWriteException;
+import com.hsrm.umweltrechner.syntax.exception.IncorrectSyntaxException;
+import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
+import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
+import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
 import com.hsrm.umweltrechner.syntax.Interpreter;
+import com.hsrm.umweltrechner.syntax.SymbolTable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,7 +49,11 @@ public class FormulaInterpreterService {
   private void init() {
     sensorMapper.selectAll().forEach(sensor -> {
       double value = sensor.getValue() != null ? sensor.getValue() : (double) 0xBabeCafe;
-      interpreter.addSensor(sensor.getName(), value);
+      try {
+        interpreter.addSensor(sensor.getName(), value);
+      } catch (OutOfRangeException | InvalidSymbolException e) {
+        throw new RuntimeException(e);
+      }
     });
     formulaMapper.selectAll().forEach(formula -> {
       try {
@@ -55,7 +66,7 @@ public class FormulaInterpreterService {
     });
   }
 
-  public void addSensorValue(String sensorName, Double value, Long ts) {
+  public void addSensorValue(String sensorName, Double value, Long ts) throws OutOfRangeException, InvalidSymbolException {
     if (value == null) {
       value = (double) 0xBabeCafe;
     }
@@ -68,7 +79,7 @@ public class FormulaInterpreterService {
   }
 
 
-  public HashMap<String, FormelInterpreter.SymbolEntry> calculateAndGetVariables() {
+  public HashMap<String, SymbolTable.SymbolEntry> calculateAndGetVariables() {
     if (interpreter.getVariables().isEmpty()) {
       return null;
     }
@@ -85,8 +96,7 @@ public class FormulaInterpreterService {
   }
 
 
-  public void checkSyntax(String formula) throws FormelInterpreter.IllegalWriteException,
-      FormelInterpreter.UnknownVariableException, FormelInterpreter.IncorrectSyntaxException {
+  public void checkSyntax(String formula) throws DivideByZeroException, DomainException, UnknownSymbolException, IllegalWriteException, IncorrectSyntaxException, OutOfRangeException {
     interpreter.checkSyntax(formula);
   }
 

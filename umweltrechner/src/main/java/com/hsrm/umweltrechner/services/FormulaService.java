@@ -9,6 +9,12 @@ import org.springframework.stereotype.Service;
 import com.hsrm.umweltrechner.dao.mapper.FormulaMapper;
 import com.hsrm.umweltrechner.dao.model.Formula;
 import com.hsrm.umweltrechner.dto.DtoFormula;
+import com.hsrm.umweltrechner.syntax.exception.DivideByZeroException;
+import com.hsrm.umweltrechner.syntax.exception.DomainException;
+import com.hsrm.umweltrechner.syntax.exception.IllegalWriteException;
+import com.hsrm.umweltrechner.syntax.exception.IncorrectSyntaxException;
+import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
+import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
 import com.hsrm.umweltrechner.syntax.FormelInterpreter;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +36,7 @@ public class FormulaService {
   }
 
 
-  public void validateFormula(String formula) throws FormelInterpreter.IllegalWriteException, FormelInterpreter.UnknownVariableException, FormelInterpreter.IncorrectSyntaxException {
+  public void validateFormula(String formula) throws DivideByZeroException, DomainException, UnknownSymbolException, IllegalWriteException, IncorrectSyntaxException, OutOfRangeException {
     formulaInterpreterService.checkSyntax(formula);
   }
 

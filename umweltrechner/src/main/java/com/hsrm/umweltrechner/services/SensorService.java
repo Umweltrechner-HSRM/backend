@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.hsrm.umweltrechner.dao.mapper.SensorMapper;
 import com.hsrm.umweltrechner.dao.model.Sensor;
+import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
+import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,7 +29,7 @@ public class SensorService {
     this.formulaInterpreterService = formulaInterpreterService;
   }
 
-  public Sensor addOrUpdateSensor(Sensor sensor) {
+  public Sensor addOrUpdateSensor(Sensor sensor) throws OutOfRangeException, InvalidSymbolException {
     sensorMapper.deleteByName(sensor.getName());
     sensorMapper.insert(sensor);
     formulaInterpreterService.addSensorValue(sensor.getName(), sensor.getValue(), null);

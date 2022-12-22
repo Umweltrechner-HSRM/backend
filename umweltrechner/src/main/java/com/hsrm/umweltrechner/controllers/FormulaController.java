@@ -10,7 +10,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.hsrm.umweltrechner.dto.DtoFormula;
 import com.hsrm.umweltrechner.services.FormulaService;
-import com.hsrm.umweltrechner.syntax.FormelInterpreter;
+import com.hsrm.umweltrechner.syntax.exception.DivideByZeroException;
+import com.hsrm.umweltrechner.syntax.exception.DomainException;
+import com.hsrm.umweltrechner.syntax.exception.IllegalWriteException;
+import com.hsrm.umweltrechner.syntax.exception.IncorrectSyntaxException;
+import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
+import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
 
 @Controller
 @RequestMapping("/formula")
@@ -25,7 +30,9 @@ public class FormulaController {
     try {
       formulaService.validateFormula(formula.getFormula());
       return ResponseEntity.ok().build();
-    } catch (FormelInterpreter.IllegalWriteException | FormelInterpreter.UnknownVariableException | FormelInterpreter.IncorrectSyntaxException e) {
+    } catch (DivideByZeroException | DomainException |
+             UnknownSymbolException | IllegalWriteException | IncorrectSyntaxException |
+             OutOfRangeException e) {
       return ResponseEntity.badRequest().build();
     }
   }

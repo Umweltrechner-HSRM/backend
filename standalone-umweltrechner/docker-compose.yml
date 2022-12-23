@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+
+  umweltrechner:
+    build: ../umweltrechner/.
+    image: umweltrechno
+    container_name: umweltrechner
+    depends_on:
+      - umweltrechner-mysql-db
+      - umweltrechner-backend-keycloak-mysql
+      - keycloak
+    ports:
+      - "8230:8230"
+    networks:
+      - umweltrechner-netz
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://umweltrechner-mysql-db:3306/umweltrechner
+
+  umweltrechner-mysql-db:
+    image: mysql:8.0
+    container_name: umweltrechner-mysql-db-server
+    ports:
+      - "3312:3313"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_USER: umweltrechner
+      MYSQL_PASSWORD: 123456Aa@
+      MYSQL_ROOT_HOST: '%'
+    volumes:
+      - ./../umweltrechner-docker/scripts:/docker-entrypoint-initdb.d/
+    networks:
+      - umweltrechner-netz
+
+  umweltrechner-backend-keycloak-mysql:
+    image: mysql:8.0
+    container_name: umweltrechner-keycloak-backend-mysql-server
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: password
+    ports:
+      - "3320:3321"
+    networks:
+      - umweltrechner-netz
+
+  keycloak:
+    image: jboss/keycloak
+    container_name: umweltrechner-keycloak-umweltrechner-server
+    depends_on:
+      - umweltrechner-backend-keycloak-mysql
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_BACKEND_URL: http://localhost:8084/auth
+      DB_VENDOR: MYSQL
+      DB_ADDR: umweltrechner-backend-keycloak-mysql
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+      KEYCLOAK_USER: develop
+      KEYCLOAK_PASSWORD: develop
+    ports:
+      - "8084:8080"
+    volumes:
+      - ./../umweltrechner-keycloak/export:/tmp/export/
+    command:
+      - "-Dkeycloak.migration.provider=dir"
+      - "-Dkeycloak.migration.action=import"
+      - "-Dkeycloak.migration.dir=/tmp/export/"
+      - "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
+      - "-Dkeycloak.profile.feature.upload_scripts=enabled"
+    networks:
+      - umweltrechner-netz
+
+networks:
+  umweltrechner-netz:

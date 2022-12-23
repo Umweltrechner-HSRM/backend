@@ -3,10 +3,10 @@ package com.hsrm.umweltrechner.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.hsrm.umweltrechner.dto.DtoFormula;
 import com.hsrm.umweltrechner.services.FormulaService;
@@ -17,7 +17,7 @@ import com.hsrm.umweltrechner.syntax.exception.IncorrectSyntaxException;
 import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
 import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
 
-@Controller
+@RestController
 @RequestMapping("/formula")
 public class FormulaController {
 

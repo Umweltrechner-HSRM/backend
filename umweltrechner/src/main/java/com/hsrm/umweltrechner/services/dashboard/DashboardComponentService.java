@@ -1,8 +1,7 @@
-package com.hsrm.umweltrechner.services;
+package com.hsrm.umweltrechner.services.dashboard;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,7 @@ import com.hsrm.umweltrechner.exceptions.NotFoundException;
 import com.hsrm.umweltrechner.util.CurrentSession;
 
 @Service
-public class DashboardService {
+public class DashboardComponentService {
 
   @Autowired
   private DashboardComponentMapper dashboardComponentMapper;

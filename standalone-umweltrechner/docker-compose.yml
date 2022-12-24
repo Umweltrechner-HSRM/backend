@@ -13,24 +13,25 @@ services:
     ports:
       - "8230:8230"
     networks:
-      - umweltrechner-netz
+      - umweltrechner
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://umweltrechner-mysql-db:3306/umweltrechner
+      - SPRING_DATASOURCE_URL=jdbc:mysql://umweltrechner-mysql-db:3312/umweltrechner
 
   umweltrechner-mysql-db:
     image: mysql:8.0
     container_name: umweltrechner-mysql-db-server
     ports:
-      - "3312:3313"
+      - "3312:3312"
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_USER: umweltrechner
       MYSQL_PASSWORD: 123456Aa@
       MYSQL_ROOT_HOST: '%'
+      MYSQL_TCP_PORT: 3312
     volumes:
       - ./../umweltrechner-docker/scripts:/docker-entrypoint-initdb.d/
     networks:
-      - umweltrechner-netz
+      - umweltrechner
 
   umweltrechner-backend-keycloak-mysql:
     image: mysql:8.0
@@ -44,7 +45,7 @@ services:
     ports:
       - "3320:3321"
     networks:
-      - umweltrechner-netz
+      - umweltrechner
 
   keycloak:
     image: jboss/keycloak
@@ -72,7 +73,7 @@ services:
       - "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
       - "-Dkeycloak.profile.feature.upload_scripts=enabled"
     networks:
-      - umweltrechner-netz
+      - umweltrechner
 
 networks:
-  umweltrechner-netz:
+  umweltrechner:

@@ -3,7 +3,7 @@
 <mapper namespace="com.hsrm.umweltrechner.dao.mapper.FormulaMapper">
 
     <resultMap id="BaseResultMap" type="com.hsrm.umweltrechner.dao.model.Formula">
-        <id column="id" jdbcType="INTEGER" property="id"/>
+        <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="formula" jdbcType="VARCHAR" property="formula"/>
     </resultMap>
     <insert id="insert" parameterType="com.hsrm.umweltrechner.dao.model.Formula">

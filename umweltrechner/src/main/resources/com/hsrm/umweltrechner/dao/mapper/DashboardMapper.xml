@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsrm.umweltrechner.dao.mapper.DashboardMapper">
+
+    <resultMap id="CompleteResultMap" type="com.hsrm.umweltrechner.dto.DtoDashboard">
+        <id column="dashboard_id" property="id"/>
+        <result column="dashboard_name" property="name"/>
+        <collection property="components" ofType="com.hsrm.umweltrechner.dto.DtoDashboardComponentWithPosition">
+            <result column="dashboard_component_id" property="id"/>
+            <result column="dashboard_component_name" property="name"/>
+            <result column="dashboard_component_type" property="type"/>
+            <result column="dashboard_component_variable" property="variable"/>
+            <result column="dashboard_component_variable_color" property="variableColor"/>
+            <result column="dashboard_component_position" property="position"/>
+        </collection>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.hsrm.umweltrechner.dao.model.Dashboard">
+        INSERT INTO dashboard (id, name)
+        VALUES (#{id}, #{name})
+    </insert>
+
+    <update id="update" parameterType="com.hsrm.umweltrechner.dao.model.Dashboard">
+        UPDATE dashboard
+        SET name = #{name}
+        WHERE id = #{id}
+    </update>
+
+
+    <delete id="deleteById">
+        DELETE
+        FROM dashboard
+        WHERE id = #{id}
+    </delete>
+
+
+    <select id="selectFullDashboards" resultMap="CompleteResultMap">
+        select dashboard.id             as dashboard_id,
+               dashboard.name           as dashboard_name,
+               position                 as dashboard_component_position,
+               dashboard_component_id   as dashboard_component_id,
+               dashboard_component.name as dashboard_component_name,
+               type                     as dashboard_component_type,
+               variable                 as dashboard_component_variable,
+               variable_color           as dashboard_component_variable_color
+        from dashboard
+                 left join dashboard_page on dashboard.id = dashboard_page.dashboard_id
+                 left join dashboard_component on dashboard_page.dashboard_component_id = dashboard_component.id
+        order by dashboard_page.position
+
+    </select>
+    <select id="selectFullDashboardbyId" resultMap="CompleteResultMap">
+        select dashboard.id             as dashboard_id,
+               dashboard.name           as dashboard_name,
+               position                 as dashboard_component_position,
+               dashboard_component_id   as dashboard_component_id,
+               dashboard_component.name as dashboard_component_name,
+               type                     as dashboard_component_type,
+               variable                 as dashboard_component_variable,
+               variable_color           as dashboard_component_variable_color
+        from dashboard
+                 left join dashboard_page on dashboard.id = dashboard_page.dashboard_id
+                 left join dashboard_component on dashboard_page.dashboard_component_id = dashboard_component.id
+        where dashboard.id = #{id}
+        order by dashboard_page.position
+
+    </select>
+    <select id="selectById" resultType="com.hsrm.umweltrechner.dao.model.Dashboard">
+        SELECT id, name
+        FROM dashboard
+        WHERE id = #{id}
+    </select>
+
+
+</mapper>

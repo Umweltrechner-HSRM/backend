@@ -16,7 +16,6 @@ import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
 import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
 
 @Component("FormelInterpreter")
-
 public class FormelInterpreter implements Interpreter {
 
 
@@ -36,7 +35,7 @@ public class FormelInterpreter implements Interpreter {
   }
 
   public FormelInterpreter() {
-    this.equations = new char[1]['\n'];
+    this.equations = new char[0]['\n'];
   }
 
   //// Helper methods ////

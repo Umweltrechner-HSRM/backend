@@ -43,7 +43,7 @@ services:
       MYSQL_USER: keycloak
       MYSQL_PASSWORD: password
     ports:
-      - "3320:3321"
+      - "3320:3320"
     networks:
       - umweltrechner
 

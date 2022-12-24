@@ -10,12 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hsrm.umweltrechner.dto.DtoFormula;
 import com.hsrm.umweltrechner.services.FormulaService;
-import com.hsrm.umweltrechner.syntax.exception.DivideByZeroException;
-import com.hsrm.umweltrechner.syntax.exception.DomainException;
-import com.hsrm.umweltrechner.syntax.exception.IllegalWriteException;
-import com.hsrm.umweltrechner.syntax.exception.IncorrectSyntaxException;
-import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
-import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
 
 @RestController
 @RequestMapping("/formula")
@@ -26,15 +20,13 @@ public class FormulaController {
 
   @PostMapping("/validate")
   @PreAuthorize("hasRole('admin')")
-  public ResponseEntity<Void> validateFormula(@RequestBody DtoFormula formula) {
+  public ResponseEntity<String> validateFormula(@RequestBody DtoFormula formula) {
     try {
       formulaService.validateFormula(formula.getFormula());
-      return ResponseEntity.ok().build();
-    } catch (DivideByZeroException | DomainException |
-             UnknownSymbolException | IllegalWriteException | IncorrectSyntaxException |
-             OutOfRangeException e) {
-      return ResponseEntity.badRequest().build();
+    } catch (Exception e) {
+      return ResponseEntity.badRequest().body(e.getMessage());
     }
+    return ResponseEntity.ok().build();
   }
 
   @PostMapping("/add")

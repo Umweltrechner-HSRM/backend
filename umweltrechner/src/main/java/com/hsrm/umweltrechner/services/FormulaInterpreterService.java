@@ -100,5 +100,9 @@ public class FormulaInterpreterService {
     interpreter.checkSyntax(formula);
   }
 
+  public boolean variableExists(String variableName) {
+    return interpreter.symbolExists(variableName);
+  }
+
 
 }

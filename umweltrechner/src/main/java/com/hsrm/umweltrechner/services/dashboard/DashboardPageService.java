@@ -1,5 +1,6 @@
 package com.hsrm.umweltrechner.services.dashboard;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,6 +35,7 @@ public class DashboardPageService {
     Dashboard dashboard = new Dashboard();
     dashboard.setName(dtoDashboard.getName());
     dashboard.setId(UUID.randomUUID().toString());
+    dashboard.setCreatedAt(ZonedDateTime.now());
     dashboardMapper.insert(dashboard);
     if (dtoDashboard.getComponents() != null) {
       dtoDashboard.getComponents().stream()

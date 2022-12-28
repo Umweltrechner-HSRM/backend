@@ -5,6 +5,7 @@
     <resultMap id="CompleteResultMap" type="com.hsrm.umweltrechner.dto.DtoDashboard">
         <id column="dashboard_id" property="id"/>
         <result column="dashboard_name" property="name"/>
+        <result column="dashboard_created_at" property="createdAt"/>
         <collection property="components" ofType="com.hsrm.umweltrechner.dto.DtoDashboardComponentWithPosition">
             <result column="dashboard_component_id" property="id"/>
             <result column="dashboard_component_name" property="name"/>
@@ -16,8 +17,8 @@
     </resultMap>
 
     <insert id="insert" parameterType="com.hsrm.umweltrechner.dao.model.Dashboard">
-        INSERT INTO dashboard (id, name)
-        VALUES (#{id}, #{name})
+        INSERT INTO dashboard (id, name, created_at)
+        VALUES (#{id}, #{name}, #{createdAt})
     </insert>
 
     <update id="update" parameterType="com.hsrm.umweltrechner.dao.model.Dashboard">
@@ -37,6 +38,7 @@
     <select id="selectFullDashboards" resultMap="CompleteResultMap">
         select dashboard.id             as dashboard_id,
                dashboard.name           as dashboard_name,
+               dashboard.created_at     as dashboard_created_at,
                position                 as dashboard_component_position,
                dashboard_component_id   as dashboard_component_id,
                dashboard_component.name as dashboard_component_name,
@@ -46,12 +48,13 @@
         from dashboard
                  left join dashboard_page on dashboard.id = dashboard_page.dashboard_id
                  left join dashboard_component on dashboard_page.dashboard_component_id = dashboard_component.id
-        order by dashboard_page.position
+        order by dashboard_created_at, dashboard_page.position
 
     </select>
     <select id="selectFullDashboardbyId" resultMap="CompleteResultMap">
         select dashboard.id             as dashboard_id,
                dashboard.name           as dashboard_name,
+               dashboard.created_at     as dashboard_created_at,
                position                 as dashboard_component_position,
                dashboard_component_id   as dashboard_component_id,
                dashboard_component.name as dashboard_component_name,
@@ -62,7 +65,7 @@
                  left join dashboard_page on dashboard.id = dashboard_page.dashboard_id
                  left join dashboard_component on dashboard_page.dashboard_component_id = dashboard_component.id
         where dashboard.id = #{id}
-        order by dashboard_page.position
+        order by dashboard_created_at, dashboard_page.position
 
     </select>
     <select id="selectById" resultType="com.hsrm.umweltrechner.dao.model.Dashboard">

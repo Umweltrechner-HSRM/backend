@@ -54,7 +54,7 @@ services:
       - umweltrechner-backend-keycloak-mysql
     restart: unless-stopped
     environment:
-      KEYCLOAK_BACKEND_URL: http://localhost:8084/auth
+      KEYCLOAK_BACKEND_URL: http://keycloak:8080/auth
       DB_VENDOR: MYSQL
       DB_ADDR: umweltrechner-backend-keycloak-mysql
       DB_DATABASE: keycloak
@@ -63,7 +63,7 @@ services:
       KEYCLOAK_USER: develop
       KEYCLOAK_PASSWORD: develop
     ports:
-      - "8084:8080"
+      - "8080:8080"
     volumes:
       - ./../umweltrechner-keycloak/export:/tmp/export/
     command:

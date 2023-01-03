@@ -64,7 +64,9 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.projectlombok:lombok'
-	testAnnotationProcessor 'org.projectlombok:lombok';
+	testAnnotationProcessor 'org.projectlombok:lombok'
+
+	implementation 'com.google.guava:guava:31.0.1-jre'
 
 	// MyBatis
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.2'
@@ -74,10 +76,16 @@ dependencies {
 
 	// Keycloak
 	implementation 'org.keycloak:keycloak-spring-boot-starter'
+
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+
+	testImplementation 'junit:junit:4.13.1'
+
+	test {
+		useJUnitPlatform()
+	}
 }
 
 apply plugin: "org.liquibase.gradle"
-
-tasks.named('test') {
-	useJUnitPlatform()
-}

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hsrm.umweltrechner.dao.mapper.DashboardComponentMapper">
+
+    <resultMap id="BaseResultMap" type="com.hsrm.umweltrechner.dao.model.DashboardComponent">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="variable" jdbcType="VARCHAR" property="variable"/>
+        <result column="variable_color" jdbcType="VARCHAR" property="variableColor"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="created_by" jdbcType="VARCHAR" property="createdBy"/>
+        <result column="changed_at" jdbcType="TIMESTAMP" property="changedAt"/>
+        <result column="changed_by" jdbcType="VARCHAR" property="changedBy"/>
+    </resultMap>
+
+    <resultMap id="DtoResultMap" type="com.hsrm.umweltrechner.dto.DtoDashboardComponent">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="variable" jdbcType="VARCHAR" property="variable"/>
+        <result column="variable_color" jdbcType="VARCHAR" property="variableColor"/>
+    </resultMap>
+
+
+    <insert id="insert" parameterType="com.hsrm.umweltrechner.dao.model.DashboardComponent">
+        INSERT INTO dashboard_component (id, name, type, variable, variable_color, created_at, created_by, changed_at, changed_by)
+        VALUES (#{id,jdbcType=VARCHAR},
+                #{name,jdbcType=VARCHAR},
+                #{type,jdbcType=VARCHAR},
+                #{variable,jdbcType=VARCHAR},
+                #{variableColor,jdbcType=VARCHAR},
+                #{createdAt,jdbcType=TIMESTAMP},
+                #{createdBy,jdbcType=VARCHAR},
+                #{changedAt,jdbcType=TIMESTAMP},
+                #{changedBy,jdbcType=VARCHAR})
+    </insert>
+
+    <update id="update" parameterType="com.hsrm.umweltrechner.dao.model.DashboardComponent">
+        UPDATE dashboard_component
+        SET name = #{name,jdbcType=VARCHAR},
+            type = #{type,jdbcType=VARCHAR},
+            variable = #{variable,jdbcType=VARCHAR},
+            variable_color = #{variableColor,jdbcType=VARCHAR},
+            created_at = #{createdAt,jdbcType=TIMESTAMP},
+            created_by = #{createdBy,jdbcType=VARCHAR},
+            changed_at = #{changedAt,jdbcType=TIMESTAMP},
+            changed_by = #{changedBy,jdbcType=VARCHAR}
+        WHERE id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <delete id="deleteById">
+        DELETE
+        FROM dashboard_component
+        WHERE id = #{id}
+    </delete>
+
+    <select id="selectAll" resultMap="DtoResultMap">
+        SELECT id, name, type, variable, variable_color
+        from dashboard_component
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, name, type, variable, variable_color, created_at, created_by, changed_at, changed_by
+        from dashboard_component
+        WHERE id = #{id}
+    </select>
+</mapper>

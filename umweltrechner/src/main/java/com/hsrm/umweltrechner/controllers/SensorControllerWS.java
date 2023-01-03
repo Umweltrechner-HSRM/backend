@@ -12,7 +12,9 @@ import org.springframework.stereotype.Controller;
 
 import com.hsrm.umweltrechner.dto.DtoSensorData;
 import com.hsrm.umweltrechner.services.FormulaInterpreterService;
-import com.hsrm.umweltrechner.syntax.FormelInterpreter;
+import com.hsrm.umweltrechner.syntax.SymbolTable;
+import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
+import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,14 +31,14 @@ public class SensorControllerWS {
 
 
   @MessageMapping("/{sensor}")
-  public void sendTemperature(@DestinationVariable("sensor") String sensor, DtoSensorData sensorData) {
+  public void sendTemperature(@DestinationVariable("sensor") String sensor, DtoSensorData sensorData) throws OutOfRangeException, InvalidSymbolException {
     log.info("Received temperature data from sensor " + sensor + ": " + sensorData);
     formulaInterpreterService.addSensorValue(sensor, sensorData.getValue(), sensorData.getTimestamp());
   }
 
   @Scheduled(fixedRate = 1000)
   public void scheduledVariables(){
-    HashMap<String, FormelInterpreter.SymbolEntry> variables = formulaInterpreterService.calculateAndGetVariables();
+    HashMap<String, SymbolTable.SymbolEntry> variables = formulaInterpreterService.calculateAndGetVariables();
     if(variables != null){
       formulaInterpreterService.calculateAndGetVariables().forEach((key, value) -> {
         log.info("Sending sensor data for sensor " + key + ": " + value);

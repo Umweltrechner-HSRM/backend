@@ -4,599 +4,917 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Component;
 
-import lombok.Data;
+import com.hsrm.umweltrechner.syntax.exception.DivideByZeroException;
+import com.hsrm.umweltrechner.syntax.exception.DomainException;
+import com.hsrm.umweltrechner.syntax.exception.IllegalWriteException;
+import com.hsrm.umweltrechner.syntax.exception.IncorrectSyntaxException;
+import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
+import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
+import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
 
 @Component("FormelInterpreter")
-
 public class FormelInterpreter implements Interpreter {
 
-    @Data
-    public static class SymbolEntry {
-        Double value;
-        boolean readOnly;
-        long lastModified;
 
-        public SymbolEntry(Double value, boolean readOnly, long lastModified) {
-            this.value = value;
-            this.readOnly = readOnly;
-            this.lastModified = lastModified;
-        }
+  private char[][] equations;
+  private int lineIndex = 0;
+  private int charIndex = 0;
+  private long startTime;
+  private long variableTime;
+  private boolean syntaxOnly = false;
+  private final SymbolTable table = new SymbolTable();
 
-        public SymbolEntry(Double value, boolean readOnly) {
-            this(value, readOnly, System.currentTimeMillis());
-        }
+  // Only to be used internally as part of the syntax validation
+  private FormelInterpreter(String equations, boolean syntaxOnly) {
+    equations = equations + '\n';
+    this.equations = createCharArray(removeComments(equations));
+    this.syntaxOnly = syntaxOnly;
+  }
 
-        public SymbolEntry(Double value) {
-            this(value, false);
-        }
+  public FormelInterpreter() {
+    this.equations = new char[0]['\n'];
+  }
 
-        @Override
-        public String toString() {
-            return "{value=" + value + ", readOnly=" + readOnly + ", lastModified="+ lastModified + "}";
-        }
+  //// Helper methods ////
+
+  // Get next character
+  private char next() {
+    return equations[lineIndex][++charIndex];
+  }
+
+  // Get current character
+  private char read() {
+    return equations[lineIndex][charIndex];
+  }
+
+  private char skipSpaces() {
+    char ch = read();
+    while (ch == ' ') ch = next();
+    return ch;
+  }
+
+  private boolean isLetter(char ch) {
+    // A-Z, a-z, underscore
+    return Character.isLetter(ch) || ch == '_';
+  }
+
+  private boolean isDigit(char ch) {
+    return Character.isDigit(ch);
+  }
+
+  private boolean isRelationalOperator(char ch) {
+    char[] operators = {'=', '!', '<', '>'};
+    for (char c : operators) {
+      if (ch == c) return true;
+    }
+    return false;
+  }
+
+  private boolean isAssignmentOperator(char ch) {
+    char[] operators = {'=', '+', '-', '*', '/'};
+    for (char c : operators) {
+      if (ch == c) return true;
+    }
+    return false;
+  }
+
+  // Split the input string into lines with a guaranteed newline character at the end
+  private char[][] createCharArray(String input) {
+    String[] lines = input.split("\n");
+    char[][] result = new char[lines.length][];
+
+    for (int i = 0; i < lines.length; i++) {
+      result[i] = (lines[i] + "\n").toCharArray();
     }
 
-    public static class IncorrectSyntaxException extends Exception {
-        int line;
-        int ch;
+    return result;
+  }
 
-        public IncorrectSyntaxException(int line, int index) {
-            super("Incorrect syntax at line " + (line + 1) + " and character " + (index + 1));
-            this.line = line + 1;
-            this.ch = index + 1;
-        }
+  private String removeComments(String input) {
+    char[] chars = (input + '\n').toCharArray();
+    ArrayList<Character> buffer = new ArrayList<>();
+
+    // Omit all characters between // (inclusive) and \n (exclusive)
+    for (int i = 0; i < chars.length - 1; i++) {
+      if (chars[i] == '/' && chars[i + 1] == '/') {
+        while (chars[i] != '\n') i++;
+      }
+      buffer.add(chars[i]);
     }
 
-    public static class UnknownVariableException extends Exception {
-        String sym;
-
-        public UnknownVariableException(String sym) {
-            super("Unknown symbol " + sym);
-            this.sym = sym;
-        }
+    // Collect the remaining characters from the buffer for concatenation
+    char[] result = new char[buffer.size()];
+    for (int i = 0; i < result.length; i++) {
+      result[i] = buffer.get(i);
     }
 
-    public static class IllegalWriteException extends Exception {
-        String sym;
+    return new String(result);
+  }
 
-        public IllegalWriteException(String sym) {
-            super("Can't change value of read-only symbol " + sym);
-            this.sym = sym;
-        }
+  //// Interface methods ////
+
+  // Set the equations to be used by the interpreter
+  // Since the program is constantly looking ahead one character, adding a newline
+  // character ensures that there is at least one character left to read
+  public void setEquations(String newEquations) {
+
+    // checkSyntax(newEquations);
+    newEquations = newEquations + '\n';
+    equations = createCharArray(removeComments(newEquations));
+  }
+
+  // Check that the syntax is valid by doing one calculation run with a second interpreter instance
+  public void checkSyntax(String newEquations) throws IncorrectSyntaxException,
+      UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException,
+      DomainException {
+
+    FormelInterpreter tester = new FormelInterpreter(newEquations, true);
+    for (Map.Entry<String, SymbolTable.SymbolEntry> entry : table.symbols.entrySet()) {
+      try {
+        tester.table.setSymbol(entry.getKey(), entry.getValue());
+      } catch (IllegalWriteException e) {
+        // this should never happen
+      }
+    }
+    tester.calculate();
+  }
+
+  // Only to be used by surrounding application to add new read-only variables (sensors)
+  public void addSensor(String symbol, double value, long timestamp) throws OutOfRangeException,
+      InvalidSymbolException {
+
+    if (value == Double.MIN_VALUE || value == Double.MAX_VALUE) throw new OutOfRangeException();
+
+    char[] charArray = symbol.toCharArray();
+
+    if (charArray.length == 0) throw new InvalidSymbolException(symbol, lineIndex, charIndex);
+
+    for (int i = 0; i < charArray.length; i++) {
+      if (!(isLetter(charArray[i]) || isDigit(charArray[i])))
+        throw new InvalidSymbolException(symbol, lineIndex, charIndex);
+      if (i == 0 && isDigit(charArray[i]))
+        throw new InvalidSymbolException(symbol, lineIndex, charIndex);
     }
 
-    private char[][] equations;
-    private int line = 0;
-    private int index = 0;
-    private long currentTime;
-    private long variableTime;
-    private boolean syntax_only = false;
-    private final ConcurrentHashMap<String, SymbolEntry> variables = new ConcurrentHashMap<>();
+    SymbolTable.SymbolEntry entry = new SymbolTable.SymbolEntry(value, true, timestamp);
+    table.addSensor(symbol, entry);
+  }
 
-    // Only to be used internally as part of the syntax validation
-    private FormelInterpreter(String equations, boolean syntax_only) {
-        equations = equations + '\n';
-        this.equations = setup(removeComments(equations));
-        this.syntax_only = syntax_only;
+  public void addSensor(String symbol, double value) throws OutOfRangeException,
+      InvalidSymbolException {
+    addSensor(symbol, value, System.currentTimeMillis());
+  }
+
+  public void removeSymbol(String symbol) throws UnknownSymbolException {
+    try {
+      table.removeSymbol(symbol);
+    } catch (UnknownSymbolException e) {
+      throw new UnknownSymbolException(e.getMessage(), lineIndex, charIndex);
     }
+  }
 
-    public FormelInterpreter() {
-        this.equations = new char[0]['\n'];
+  public boolean symbolExists(String symbol) {
+    return table.symbolExists(symbol);
+  }
+
+  /**
+   * @deprecated method signature has been replaced by {@link #removeSymbol(String)}
+   */
+  @Deprecated
+  public void removeSensor(String sensor) throws UnknownSymbolException {
+    removeSymbol(sensor);
+  }
+
+  /**
+   * @deprecated method signature has been replaced by {@link #symbolExists(String)}
+   */
+  @Deprecated
+  public boolean sensorExists(String sensor) {
+    return symbolExists(sensor);
+  }
+
+  // Only get key-value pairs of variable name and value, without description or flags
+  public HashMap<String, Double> getVariables() {
+    return table.getVariables();
+  }
+
+  // Get key-value pairs of variable name, value and flags
+  public HashMap<String, SymbolTable.SymbolEntry> getVariablesWithFlag() {
+    return table.getVariablesWithFlag();
+  }
+
+  public Double getVariable(String symbol) throws UnknownSymbolException {
+    try {
+      return table.getVariable(symbol);
+    } catch (UnknownSymbolException e) {
+      throw new UnknownSymbolException(e.getMessage(), lineIndex, charIndex);
     }
+  }
 
-    // Get next character
-    private char next() {
-        return equations[line][++index];
+  public void clearSymbolTable() {
+    table.clearSymbolTable();
+  }
+
+  public void clearVariables() {
+    table.clearVariables();
+  }
+
+  // Run the equations through the interpreter using the variables present in the HashMap
+  public void calculate() throws IncorrectSyntaxException, UnknownSymbolException,
+      IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException {
+
+    startTime = System.currentTimeMillis();
+
+    // Iterate through all lines
+    for (lineIndex = 0; lineIndex < equations.length; lineIndex++) {
+      charIndex = 0;
+
+      // Skip any spaces or newlines
+      char ch = skipSpaces();
+      if (ch == '\n') continue;
+
+      // Check first (real) character of line, then proceed accordingly
+      // The remaining characters are iterated over in the called methods
+
+      // Labels are ignored as they only matter for goto statements which are handled separately
+      if (ch == ':') continue;
+      if (isLetter(ch)) {
+        // If the word is a keyword, proceed accordingly and start the next line afterwards
+        if (keyword(ch)) continue;
+        ch = equation(ch);
+        // Throw a syntax error if any unexpected characters come after the statement
+        if (ch != '\n')
+          throw new IncorrectSyntaxException("Unexpected character '" + ch + "'", lineIndex,
+              charIndex);
+      } else
+        throw new IncorrectSyntaxException("Unexpected character '" + ch + "'", lineIndex,
+            charIndex);
     }
+  }
 
-    // Get current character
-    private char read() {
-        return equations[line][index];
+  //// Interpreter methods ////
+
+  // Returns true if the line started with a keyword and calls the corresponding keyword method
+  private boolean keyword(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
+      IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException {
+
+    int startIndex = charIndex;
+
+    // Build potential keyword from letters
+    StringBuilder symbol = new StringBuilder();
+    while (isLetter(ch)) {
+      symbol.append(ch);
+      ch = next();
     }
+    ch = skipSpaces();
 
-    private boolean isLetter(char ch) {
-        // A-Z, a-z, underscore
-        return Character.isLetter(ch) || ch == '_';
-    }
-
-    private boolean isDigit(char ch) {
-        return Character.isDigit(ch);
-    }
-
-    private boolean isOperator(char ch) {
-        char[] operators = {'=', '!', '<', '>'};
-        for (char c : operators) {
-            if (ch == c) return true;
-        }
+    // Jump to beginning of line and return false if not a keyword
+    switch (symbol.toString()) {
+      case "if" -> {
+        ifStatement(ch);
+        return true;
+      }
+      case "goto" -> {
+        gotoLabel(ch);
+        return true;
+      }
+      default -> {
+        charIndex = startIndex;
         return false;
+      }
+    }
+  }
+
+  private void ifStatement(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
+      IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException {
+
+    boolean conditionTrue;
+    if (ch == '(') {
+      next();
+      ch = skipSpaces();
+      conditionTrue = condition(ch);
+      ch = read();
+      if (ch == ')') next();
+      else
+        throw new IncorrectSyntaxException("Expected ')' but got '" + ch + "'", lineIndex,
+            charIndex);
+    } else {
+      conditionTrue = condition(ch);
     }
 
-    // Split the input string into lines with a guaranteed newline character at the end
-    private char[][] setup(String input) {
-        String[] lines = input.split("\n");
-        char[][] result = new char[lines.length][];
+    ch = skipSpaces();
 
-        for (int i = 0; i < lines.length; i++) {
-            result[i] = (lines[i] + "\n").toCharArray();
-        }
-
-        return result;
+    // If statements are always followed by a goto statement
+    StringBuilder symbol = new StringBuilder();
+    while (isLetter(ch)) {
+      symbol.append(ch);
+      ch = next();
     }
+    ch = skipSpaces();
 
-    private String removeComments(String input) {
-        char[] chars = (input + '\n').toCharArray();
-        ArrayList<Character> buffer = new ArrayList<>();
+    if (!symbol.toString().equals("goto"))
+      throw new IncorrectSyntaxException("Expected 'goto' but got '" + symbol + "'", lineIndex,
+          charIndex);
 
-        // Omit all characters between // (inclusive) and \n (exclusive)
-        for (int i = 0; i < chars.length - 1; i++) {
-            if (chars[i] == '/' && chars[i + 1] == '/') {
-                while (chars[i] != '\n') i++;
-            }
-            buffer.add(chars[i]);
-        }
+    // Only execute goto statement if comparison returned true
+    if (conditionTrue) gotoLabel(ch);
+  }
 
-        // Collect the remaining characters from the buffer for concatenation
-        char[] result = new char[buffer.size()];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = buffer.get(i);
-        }
+  // Only here for clarity or future expansion
+  private boolean condition(char ch) throws IncorrectSyntaxException,
+      UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException,
+      IllegalWriteException {
 
-        return new String(result);
-    }
+    return disjunction(ch);
+  }
 
-    // Get symbol value from variables HashMap
-    private SymbolEntry getSymbol(String sym) {
-        if (!variables.containsKey(sym)) {
-            SymbolEntry entry = new SymbolEntry(null);
-            variables.put(sym, entry);
-            return entry;
-        }
-        return variables.get(sym);
-    }
+  // Disjunction consists of one or multiple conjunctions concatenated by logical OR-operators
+  private boolean disjunction(char ch) throws IncorrectSyntaxException,
+      UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException,
+      IllegalWriteException {
 
-    // Add new symbol to variable HashMap, value initialized as null by default
-    private SymbolEntry setSymbol(String sym, SymbolEntry entry) throws IllegalWriteException {
-        if (variables.containsKey(sym) && variables.get(sym).readOnly)
-            throw new IllegalWriteException(sym);
-        variables.put(sym, entry);
-        return entry;
-    }
+    boolean result = conjunction(ch);
 
-    // Set the equations to be used by the interpreter
-    // Since the program is constantly looking ahead one character, adding a newline
-    // character ensures that there is at least one character left to read
-    public void setEquations(String newEquations) throws IncorrectSyntaxException,
-            UnknownVariableException, IllegalWriteException {
-        // checkSyntax(newEquations);
-        newEquations = newEquations + '\n';
-        equations = setup(removeComments(newEquations));
-    }
-
-    // Check that the syntax is valid by doing one calculation run with a second interpreter instance
-    public void checkSyntax(String newEquations) throws IncorrectSyntaxException,
-            UnknownVariableException, IllegalWriteException {
-        FormelInterpreter tester = new FormelInterpreter(newEquations, true);
-        for (Map.Entry<String, SymbolEntry> entry : variables.entrySet()) {
-            try {
-                tester.setSymbol(entry.getKey(), entry.getValue());
-            } catch (IllegalWriteException e) {
-                // this should never happen
-            }
-        }
-        tester.calculate();
-    }
-
-    public void setSensors(HashMap<String, Double> newSensors) {
-        // (optional) TODO
-    }
-
-    // Only to be used by surrounding application to add new read-only variables (sensors)
-    public void addSensor(String name, double value, long timestamp) {
-        SymbolEntry entry = new SymbolEntry(value, true, timestamp);
-        variables.put(name, entry);
-    }
-
-    public void addSensor(String name, double value) {
-        addSensor(name, value, System.currentTimeMillis());
-    }
-
-    public void removeSensor(String name) throws UnknownVariableException {
-        if (!variables.containsKey(name)) throw new UnknownVariableException(name);
-        variables.remove(name);
-    }
-
-    public boolean sensorExists(String name) {
-        return variables.containsKey(name);
-    }
-
-    public Double getVariable(String sym) throws UnknownVariableException {
-        if (!variables.containsKey(sym)) throw new UnknownVariableException(sym);
-        return variables.get(sym).value;
-    }
-
-    // Only get key-value pairs of variable name and value, without description or flags
-    public HashMap<String, Double> getVariables() {
-        HashMap<String, Double> result = new HashMap<>();
-        for (Map.Entry<String, SymbolEntry> entry : variables.entrySet()) {
-            result.put(entry.getKey(), entry.getValue().value);
-        }
-        return result;
-    }
-
-    // Only get key-value pairs of variable name and value, without description or flags
-    public HashMap<String, SymbolEntry> getVariablesWithFlag() {
-        return new HashMap<>(variables);
-    }
-
-    // Other getter methods that could be set to public if needed somewhere
-    private ConcurrentHashMap<String, SymbolEntry> getEntries() {
-        return variables;
-    }
-
-    private SymbolEntry getEntry(String sym) throws UnknownVariableException {
-        if (!variables.containsKey(sym)) throw new UnknownVariableException(sym);
-        return variables.get(sym);
-    }
-
-    // Not yet implemented
-    private HashMap<String, Double> getSensors() {
-        return new HashMap<>();
-    }
-
-    private void clearVariables() {
-        variables.clear();
-    }
-
-    // Run the equations through the interpreter using the variables present in the HashMap
-    public void calculate() throws IncorrectSyntaxException, UnknownVariableException,
-            IllegalWriteException {
-        currentTime = System.currentTimeMillis();
-
-        // Iterate through all lines
-        for (line = 0; line < equations.length; line++) {
-            index = 0;
-            char ch = read();
-
-            // Skip any spaces or newlines
-            while (ch == ' ') ch = next();
-            if (ch == '\n') continue;
-
-            // Check first (real) character of line, then proceed accordingly
-            // The remaining characters are iterated over in the called methods
-
-            // Labels are ignored as they only matter for goto statements which are handled separately
-            if (ch == ':') continue;
-            if (isLetter(ch)) {
-                // If the word is a keyword, proceed accordingly and start the next line afterwards
-                if (keyword(ch)) continue;
-                ch = equation(ch);
-                // Throw a syntax error if any unexpected characters come after the statement
-                if (ch != '\n') throw new IncorrectSyntaxException(line, index);
-            } else throw new IncorrectSyntaxException(line, index);
-        }
-    }
-
-    // Returns true if the line started with a keyword and calls the corresponding keyword method
-    private boolean keyword(char ch) throws IncorrectSyntaxException, UnknownVariableException,
-            IllegalWriteException {
-        int start_index = index;
-
-        // Build potential keyword from letters
-        String sym = "";
-        while (isLetter(ch)) {
-            sym = sym + ch;
-            ch = next();
-        }
-        while (ch == ' ') ch = next();
-
-        // Jump to beginning of line and return false if not a keyword
-        switch (sym) {
-            case "if":
-                ch = if_statement(ch);
-                return true;
-            case "goto":
-                ch = goto_label(ch);
-                return true;
-            default:
-                index = start_index;
-                return false;
-        }
-    }
-
-    private char if_statement(char ch) throws IncorrectSyntaxException, UnknownVariableException,
-            IllegalWriteException {
-        boolean is_true = comparison(ch);
+    // Interpret logical OR-operator
+    ch = read();
+    while (ch == '|') {
+      ch = next();
+      if (ch == '|') {
+        next();
+        ch = skipSpaces();
+        result = conjunction(ch) || result;
         ch = read();
-
-        // If statements are always followed by a goto statement
-        String sym = "";
-        while (isLetter(ch)) {
-            sym = sym + ch;
-            ch = next();
-        }
-        while (ch == ' ') ch = next();
-
-        if (!sym.equals("goto")) throw new IncorrectSyntaxException(line, index);
-
-        // Only execute goto statement if comparison returned true
-        if (is_true) return goto_label(ch);
-        return ch;
+      } else
+        throw new IncorrectSyntaxException("Expected '||' but got '|" + ch + "'", lineIndex,
+            charIndex);
     }
+    skipSpaces();
 
-    private boolean comparison(char ch) throws IncorrectSyntaxException, UnknownVariableException,
-            IllegalWriteException {
-        double value1 = expression(ch);
+    return result;
+  }
+
+  // Conjunction consists of one or multiple bools concatenated by logical AND-operators
+  private boolean conjunction(char ch) throws IncorrectSyntaxException,
+      UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException,
+      IllegalWriteException {
+
+    boolean result = bool(ch);
+
+    // Interpret logical AND-operator
+    ch = read();
+    while (ch == '&') {
+      ch = next();
+      if (ch == '&') {
+        next();
+        ch = skipSpaces();
+        result = result && bool(ch);
         ch = read();
+      } else
+        throw new IncorrectSyntaxException("Expected '&&' but got '&" + ch + "'", lineIndex,
+            charIndex);
+    }
+    skipSpaces();
 
-        String op = "";
-        while (isOperator(ch)) {
-            op = op + ch;
-            ch = next();
-        }
-        while (ch == ' ') ch = next();
+    return result;
+  }
 
-        // Perform comparison depending on read relational operator
-        double value2 = expression(ch);
-        switch (op) {
-            case "==":
-                return (value1 == value2);
-            case "!=":
-                return (value1 != value2);
-            case "<":
-                return (value1 < value2);
-            case "<=":
-                return (value1 <= value2);
-            case ">=":
-                return (value1 >= value2);
-            case ">":
-                return (value1 > value2);
-            default:
-                throw new IncorrectSyntaxException(line, index);
-        }
+  // Bool can be either a comparison or an enclosed disjunction
+  private boolean bool(char ch) throws IncorrectSyntaxException,
+      UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException,
+      IllegalWriteException {
+    // Interpret NOT-operator before bool
+    boolean negation = false;
+
+    if (ch == '!') {
+      negation = true;
+      next();
+      ch = skipSpaces();
     }
 
-    private char goto_label(char ch) throws IncorrectSyntaxException {
-        String label1 = "";
+    boolean result;
+
+    // If the first character is an opening parenthesis, it's an enclosed disjunction
+    // otherwise it's a comparison
+    if (ch == '(') {
+      next();
+      ch = skipSpaces();
+      result = disjunction(ch);
+      ch = read();
+      if (ch == ')') next();
+      else
+        throw new IncorrectSyntaxException("Expected ')' but got '" + ch + "'", lineIndex,
+            charIndex);
+    } else
+      result = comparison(ch);
+
+    skipSpaces();
+
+    if (negation)
+      result = !result;
+
+    return result;
+  }
+
+  // Compare two expressions using a relational operator
+  private boolean comparison(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
+      DivideByZeroException, OutOfRangeException, DomainException {
+    double value1 = expression(ch);
+    ch = read();
+
+    StringBuilder operator = new StringBuilder();
+    while (isRelationalOperator(ch)) {
+      operator.append(ch);
+      ch = next();
+    }
+    ch = skipSpaces();
+
+    // Perform comparison depending on read relational operator
+    double value2 = expression(ch);
+    return switch (operator.toString()) {
+      case "==" -> (value1 == value2);
+      case "!=" -> (value1 != value2);
+      case "<" -> (value1 < value2);
+      case "<=" -> (value1 <= value2);
+      case ">=" -> (value1 >= value2);
+      case ">" -> (value1 > value2);
+      default ->
+          throw new IncorrectSyntaxException("Unknown operator '" + operator + "'", lineIndex,
+              charIndex);
+    };
+  }
+
+  private void gotoLabel(char ch) throws IncorrectSyntaxException, UnknownSymbolException {
+    StringBuilder expectedLabel = new StringBuilder();
+    while (isLetter(ch) || isDigit(ch)) {
+      expectedLabel.append(ch);
+      ch = next();
+    }
+    ch = skipSpaces();
+
+    // Throw a syntax error if any unexpected characters come after the statement
+    if (ch != '\n')
+      throw new IncorrectSyntaxException("Unexpected character '" + ch + "'", lineIndex, charIndex);
+
+    int currentLine = lineIndex;
+    int currentIndex = charIndex;
+
+    // Iterate over each line, looking for the label at the beginning (preceded by a colon)
+    while (lineIndex < equations.length - 1) {
+      // Go to the next line and start at the first character
+      lineIndex++;
+      charIndex = 0;
+
+      ch = skipSpaces();
+
+      // If the first real character is a colon, it's a label
+      if (ch == ':') {
+        ch = next();
+        StringBuilder foundLabel = new StringBuilder();
         while (isLetter(ch) || isDigit(ch)) {
-            label1 = label1 + ch;
-            ch = next();
+          foundLabel.append(ch);
+          ch = next();
         }
-        while (ch == ' ') ch = next();
+        ch = skipSpaces();
 
         // Throw a syntax error if any unexpected characters come after the statement
-        if (ch != '\n') throw new IncorrectSyntaxException(line, index);
+        if (ch != '\n')
+          throw new IncorrectSyntaxException("Unexpected character '" + ch + "'", lineIndex,
+              charIndex);
 
-        int currentLine = line;
-        int currentIndex = index;
-
-        // Iterate over each line, looking for the label at the beginning (preceded by a colon)
-        while (line < equations.length - 1) {
-            // Go to the next line and start at the first character
-            line++;
-            index = 0;
-            ch = read();
-
-            while (ch == ' ') ch = next();
-
-            if (ch == ':') {
-                ch = next();
-                String label2 = "";
-                while (isLetter(ch) || isDigit(ch)) {
-                    label2 = label2 + ch;
-                    ch = next();
-                }
-                while (ch == ' ') ch = next();
-
-                // Throw a syntax error if any unexpected characters come after the statement
-                if (ch != '\n') throw new IncorrectSyntaxException(line, index);
-
-                // If the label is the label we are looking for, stop the search here
-                // Otherwise continue on to the next line
-                if (label1.equals(label2)) {
-                    if (syntax_only) {
-                        line = currentLine;
-                        index = currentIndex;
-                    }
-                    return ch;
-                }
-            }
+        // If the label is the label we are looking for, stop the search here
+        // Otherwise continue on to the next line
+        if (expectedLabel.toString().equals(foundLabel.toString())) {
+          if (syntaxOnly) {
+            lineIndex = currentLine;
+            charIndex = currentIndex;
+          }
+          return;
         }
-
-        // Label could not be found
-        throw new IncorrectSyntaxException(currentLine, currentIndex);
+      }
     }
 
-    // Only here for clarity or future expansion
-    private char equation(char ch) throws IncorrectSyntaxException, UnknownVariableException,
-            IllegalWriteException {
-        return assignment_statement(ch);
+    // Label could not be found
+    throw new UnknownSymbolException(expectedLabel.toString(), currentLine, currentIndex);
+  }
+
+  // Only here for clarity or future expansion
+  private char equation(char ch) throws IncorrectSyntaxException, UnknownSymbolException,
+      IllegalWriteException, DivideByZeroException, OutOfRangeException, DomainException {
+    return assignmentStatement(ch);
+  }
+
+  // Assign a value to a variable in the HashMap
+  // Syntax: symbol := expression
+  private char assignmentStatement(char ch) throws IncorrectSyntaxException,
+      UnknownSymbolException, IllegalWriteException, DivideByZeroException, OutOfRangeException,
+      DomainException {
+
+    SimpleEntry<String, Double> var = variable(ch);
+    ch = read();
+
+    variableTime = 0;
+    int startIndex = charIndex;
+    double result;
+
+    try {
+      result = assignmentOperator(ch, var.getValue());
+      ch = read();
+
+    } catch (NullPointerException e) {
+      // If the variable was previously undefined, it's value is null
+      charIndex = startIndex;
+      throw new UnknownSymbolException(var.getKey(), lineIndex, charIndex);
     }
 
-    // Assign a value to a variable in the HashMap
-    // Syntax: identifier := expression
-    private char assignment_statement(char ch) throws IncorrectSyntaxException,
-            UnknownVariableException, IllegalWriteException {
+    if (variableTime == 0)
+      variableTime = startTime;
+
+    // Update the symbol in the table, forward Exception with position in equation if thrown in
+    // SymbolTable class
+    try {
+      table.setSymbol(var.getKey(), new SymbolTable.SymbolEntry(result, false, variableTime));
+    } catch (IllegalWriteException e) {
+      throw new IllegalWriteException(e.getMessage(), lineIndex, charIndex);
+    }
+
+    return ch;
+  }
+
+  private double assignmentOperator(char ch, Double result) throws DivideByZeroException,
+      DomainException, UnknownSymbolException, IncorrectSyntaxException, OutOfRangeException {
+
+    // Read the entire operator
+    StringBuilder operator = new StringBuilder();
+    while (isAssignmentOperator(ch)) {
+      operator.append(ch);
+      ch = next();
+    }
+    ch = skipSpaces();
+
+    switch (operator.toString()) {
+      case "=" -> result = expression(ch);
+      case "+=" -> result += expression(ch);
+      case "-=" -> result -= expression(ch);
+      case "*=" -> result *= expression(ch);
+      case "/=" -> result /= expression(ch);
+      default ->
+          throw new IncorrectSyntaxException("Invalid assignment operator", lineIndex, charIndex);
+    }
+
+    return result;
+  }
+
+  // Build variable name, add to HashMap and retrieve value (null if previously undefined)
+  private SimpleEntry<String, Double> variable(char ch) throws IncorrectSyntaxException {
+    if (!isLetter(ch))
+      throw new IncorrectSyntaxException(
+          "Variable identifier must start with a letter or an underscore", lineIndex, charIndex
+      );
+
+    // Build variable name from read characters
+    StringBuilder symbol = new StringBuilder();
+    while (isLetter(ch) || isDigit(ch)) {
+      symbol.append(ch);
+      ch = next();
+    }
+    skipSpaces();
+
+    SymbolTable.SymbolEntry entry = table.getSymbol(symbol.toString());
+    Double value = entry.value;
+
+    if (entry.lastModified > variableTime)
+      variableTime = entry.lastModified;
+
+    return new SimpleEntry<>(symbol.toString(), value);
+  }
+
+  // Only here for clarity or future expansion
+  private double expression(char ch) throws IncorrectSyntaxException,
+      UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
+
+    return simpleExpression(ch);
+  }
+
+  // Simple expression consists of one or multiple terms concatenated by adding operators
+  private double simpleExpression(char ch) throws IncorrectSyntaxException,
+      UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
+
+    double result = term(ch);
+    ch = read();
+
+    // Interpret +/- operators used for addition/subtraction
+    while (ch == '+' || ch == '-') {
+      result = addingOperator(ch, result);
+      ch = read();
+    }
+    skipSpaces();
+
+    return result;
+  }
+
+  // Apply adding operator to first simple expression and second simple expression
+  private double addingOperator(char ch, double result) throws IncorrectSyntaxException,
+      UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
+
+    char operator = ch;
+    next();
+    ch = skipSpaces();
+    if (operator == '+') result = result + term(ch);
+    else result = result - term(ch);
+
+    if (result == Double.MIN_VALUE || result == Double.MAX_VALUE)
+      throw new OutOfRangeException(
+          "Value exceeded permissible range (number too big or too small)", lineIndex, charIndex
+      );
+
+    return result;
+  }
+
+  // Term consists of one or multiple factors concatenated by multiplying operators
+  private double term(char ch) throws IncorrectSyntaxException,
+      UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
+
+    double result = factor(ch);
+    ch = read();
+
+    // Interpret * or / operator
+    while (ch == '*' || ch == '/') {
+      result = multiplyingOperator(ch, result);
+      ch = read();
+    }
+    skipSpaces();
+
+    return result;
+  }
+
+  // Apply multiplying operator to first factor and new term
+  private double multiplyingOperator(char ch, double result) throws IncorrectSyntaxException,
+      UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
+
+    char operator = ch;
+    ch = next();
+    if (operator == '*') {
+      if (ch == '*') {
+        next();
+        ch = skipSpaces();
+        double fact = factor(ch);
+        if (result < 0 && fact % 1 != 0)
+          throw new DomainException("Root of negative number", lineIndex, charIndex);
+        result = Math.pow(result, fact);
+      } else {
+        ch = skipSpaces();
+        result = result * factor(ch);
+      }
+    } else {
+      ch = skipSpaces();
+      double divisor = factor(ch);
+      if (divisor == 0) throw new DivideByZeroException(lineIndex, charIndex);
+      result = result / divisor;
+    }
+
+    if (result == Double.MIN_VALUE || result == Double.MAX_VALUE)
+      throw new OutOfRangeException(
+          "Value exceeded permissible range (number too big or too small)", lineIndex, charIndex
+      );
+
+    return result;
+  }
+
+  // Factor can be either a variable, a method, an unsigned constant or an enclosed expression
+  private double factor(char ch) throws IncorrectSyntaxException,
+      UnknownSymbolException, DivideByZeroException, OutOfRangeException, DomainException {
+
+    // Interpret for +/- sign before term
+    double sign = 1;
+    if (ch == '+' || ch == '-') {
+      sign = sign(ch);
+      ch = read();
+    }
+
+    double result;
+
+    // If the first character is a letter, it's either a method or a variable
+    if (isLetter(ch)) {
+      int currentIndex = charIndex;
+
+      // Check if symbol is method or variable
+      // The symbol name is gathered in variable() or method()
+      while (isLetter(ch) || isDigit(ch)) {
+        ch = next();
+      }
+      // If the symbol is followed by opening parenthesis, it's a method
+      // Otherwise it's a variable
+      if (ch == '(') {
+        charIndex = currentIndex;
+        ch = read();
+
+        result = method(ch);
+      } else {
+        charIndex = currentIndex;
+        ch = read();
+
         SimpleEntry<String, Double> var = variable(ch);
+        if (var.getValue() == null)
+          throw new UnknownSymbolException(var.getKey(), lineIndex, charIndex);
+        result = var.getValue();
+      }
+    }
 
-        variableTime = 0;
+    // If the first character is a digit, it's a number
+    else if (isDigit(ch)) result = unsignedConstant(ch);
 
+      // If the first character is an opening parenthesis, it's an enclosed expression
+    else if (ch == '(') {
+      next();
+      ch = skipSpaces();
+      result = expression(ch);
+      ch = read();
+      if (ch == ')') next();
+      else
+        throw new IncorrectSyntaxException("Expected ')' but got '" + ch + "'", lineIndex,
+            charIndex);
+    }
+
+    // If the first character is a line, it's an enclosed positive expression
+    else if (ch == '|') {
+      next();
+      ch = skipSpaces();
+      result = Math.abs(expression(ch));
+      ch = read();
+      if (ch == '|') next();
+      else
+        throw new IncorrectSyntaxException("Expected '|' but got '" + ch + "'", lineIndex,
+            charIndex);
+    } else
+      throw new IncorrectSyntaxException("Unexpected character '" + ch + "'", lineIndex, charIndex);
+
+    skipSpaces();
+
+    result = sign * result;
+
+    if (result == Double.MIN_VALUE || result == Double.MAX_VALUE)
+      throw new OutOfRangeException(
+          "Value exceeded permissible range (number too big or too small)", lineIndex, charIndex
+      );
+
+    return result;
+  }
+
+  private double sign(char ch) {
+    double result;
+    if (ch == '+') result = 1;
+    else result = -1;
+
+    next();
+    skipSpaces();
+
+    return result;
+  }
+
+  private double method(char ch) throws IncorrectSyntaxException,
+      DivideByZeroException, DomainException, UnknownSymbolException, OutOfRangeException {
+
+    // Read symbol name
+    StringBuilder symbol = new StringBuilder();
+    while (isLetter(ch) || isDigit(ch)) {
+      symbol.append(ch);
+      ch = next();
+    }
+
+    ch = skipSpaces();
+
+    // read opening parenthesis
+    if (ch != '(')
+      throw new IncorrectSyntaxException("Expected '(' but got '" + ch + "'", lineIndex, charIndex);
+
+    next();
+    ch = skipSpaces();
+
+    // List of read parameters
+    ArrayList<Double> parameters = new ArrayList<>();
+
+    if (ch != ')') {
+      parameters.add(expression(ch));
+      ch = read();
+      while (ch == ',') {
+        next();
+        ch = skipSpaces();
+        parameters.add(expression(ch));
         ch = read();
-        if (ch != ':') throw new IncorrectSyntaxException(line, index);
+      }
+    }
+    if (ch != ')')
+      throw new IncorrectSyntaxException("Expected ')' but got '" + ch + "'", lineIndex, charIndex);
+
+    next();
+    skipSpaces();
+
+    // Call the corresponding method
+    if (parameters.size() == 0) {
+      return switch (symbol.toString()) {
+        case "pi" -> Math.PI;
+        case "e" -> Math.E;
+        default -> throw new UnknownSymbolException(symbol.toString(), lineIndex, charIndex);
+      };
+    }
+
+    if (parameters.size() == 1) {
+      switch (symbol.toString()) {
+        case "sin" -> {
+          return Math.sin(parameters.get(0));
+        }
+        case "cos" -> {
+          return Math.cos(parameters.get(0));
+        }
+        // tan: infinity for -90/90 degrees or -PI/2 or PI/2 radians
+        case "tan" -> {
+          if (Math.abs(parameters.get(0)) == Math.PI / 2)
+            throw new OutOfRangeException("Value x for tan must be -PI/2 < x < PI/2", lineIndex,
+                charIndex);
+          return Math.tan(parameters.get(0));
+        }
+        // asin: param must be -1 <= x <= 1
+        case "asin" -> {
+          if (Math.abs(parameters.get(0)) > 1)
+            throw new OutOfRangeException("Value x for asin must be -1 <= x <= 1", lineIndex,
+                charIndex);
+          return Math.asin(parameters.get(0));
+        }
+        // acos: param must be -1 <= x <= 1
+        case "acos" -> {
+          if (Math.abs(parameters.get(0)) > 1)
+            throw new OutOfRangeException("Value x for acos must be -1 <= x <= 1", lineIndex,
+                charIndex);
+          return Math.acos(parameters.get(0));
+        }
+        case "atan" -> {
+          return Math.atan(parameters.get(0));
+        }
+        case "rad" -> {
+          return Math.toRadians(parameters.get(0));
+        }
+        case "deg" -> {
+          return Math.toDegrees(parameters.get(0));
+        }
+        case "sqrt" -> {
+          if (parameters.get(0) < 0)
+            throw new DomainException("Root of negative number", lineIndex, charIndex);
+          return Math.sqrt(parameters.get(0));
+        }
+        case "abs" -> {
+          return Math.abs(parameters.get(0));
+        }
+        case "floor" -> {
+          return Math.floor(parameters.get(0));
+        }
+        case "ceil" -> {
+          return Math.ceil(parameters.get(0));
+        }
+        case "ln" -> {
+          return Math.log(parameters.get(0));
+        } // log e
+        case "log" -> {
+          return Math.log10(parameters.get(0));
+        } // log 10
+        default -> throw new UnknownSymbolException(symbol.toString(), lineIndex, charIndex);
+      }
+    } else if (parameters.size() == 2) {
+      return switch (symbol.toString()) {
+        case "min" -> Math.min(parameters.get(0), parameters.get(1));
+        case "max" -> Math.max(parameters.get(0), parameters.get(1));
+        default -> throw new UnknownSymbolException(symbol.toString(), lineIndex, charIndex);
+      };
+    } else
+      throw new IncorrectSyntaxException(
+          "Invalid method identifier '" + symbol + "' or number of parameters '" + parameters.size() + "'",
+          lineIndex, charIndex
+      );
+  }
+
+  private double unsignedConstant(char ch) {
+    StringBuilder result = new StringBuilder();
+
+    // Build number from digits
+    while (isDigit(ch)) {
+      result.append(ch);
+      ch = next();
+    }
+
+    // Allow decimals, separated by a period or a comma
+    if (ch == '.') {
+      result.append('.');
+      ch = next();
+      while (isDigit(ch)) {
+        result.append(ch);
         ch = next();
-        if (ch != '=') throw new IncorrectSyntaxException(line, index);
-        ch = next();
-        while (ch == ' ') ch = next();
-
-        double result = expression(ch);
-
-        if (variableTime == 0)
-            variableTime = currentTime;
-
-        setSymbol(var.getKey(), new SymbolEntry(result, false, variableTime));
-
-        ch = read();
-        return ch;
+      }
     }
+    skipSpaces();
 
-    // Build variable name, add to HashMap and retrieve value (null if previously undefined)
-    private SimpleEntry<String, Double> variable(char ch) throws IncorrectSyntaxException {
-        if (!Character.isLetter(ch)) throw new IncorrectSyntaxException(line, index);
-
-        // Build variable name from read characters
-        String sym = "";
-        while (isLetter(ch) || isDigit(ch)) {
-            sym = sym + ch;
-            ch = next();
-        }
-        while (ch == ' ') ch = next();
-
-        SymbolEntry entry = getSymbol(sym);
-        Double value = entry.value;
-
-        if (entry.lastModified > variableTime)
-            variableTime = entry.lastModified;
-
-        return new SimpleEntry<String, Double>(sym, value);
-    }
-
-    // Only here for clarity or future expansion
-    private double expression(char ch) throws IncorrectSyntaxException, UnknownVariableException {
-        return simple_expression(ch);
-    }
-
-    // Simple expression can be either
-    // - term
-    // - simple expression followed by adding operator (+/-) and another simple expression
-    private double simple_expression(char ch) throws IncorrectSyntaxException,
-            UnknownVariableException {
-        double result = term(ch);
-
-        // Interpret +/- signs used for addition/subtraction
-        ch = read();
-        while (ch == '+' || ch == '-') {
-            result = adding_operator(ch, result);
-            ch = read();
-        }
-        while (ch == ' ') ch = next();
-
-        return result;
-    }
-
-    // Apply adding operator to first simple expression and second simple expression
-    private double adding_operator(char ch, double result) throws IncorrectSyntaxException,
-            UnknownVariableException {
-        char ch2 = ch;
-        ch = next();
-        while (ch == ' ') ch = next();
-        if (ch2 == '+') result = result + term(ch);
-        else result = result - term(ch);
-
-        return result;
-    }
-
-    // Term can be either
-    // - factor
-    // - factor followed by multiplying operator (* or /) and another term
-    private double term(char ch) throws IncorrectSyntaxException, UnknownVariableException {
-        double result = factor(ch);
-
-        ch = read();
-        while (ch == '*' || ch == '/') {
-            result = multiplying_operator(ch, result);
-            ch = read();
-        }
-        while (ch == ' ') ch = next();
-
-        return result;
-    }
-
-    // Apply multiplying operator (* or /) to first factor and new term
-    private double multiplying_operator(char ch, double result) throws IncorrectSyntaxException,
-            UnknownVariableException {
-        char ch2 = ch;
-        ch = next();
-        while (ch == ' ') ch = next();
-        if (ch2 == '*') result = result * factor(ch);
-        else result = result / factor(ch);
-
-        return result;
-    }
-
-    private double factor(char ch) throws IncorrectSyntaxException, UnknownVariableException {
-        // Interpret for +/- sign before term
-        double s = 1;
-        if (ch == '+' || ch == '-') {
-            s = sign(ch);
-            ch = read();
-        }
-
-        double result;
-
-        // If the first character is a letter, it's a variable
-        if (isLetter(ch)) {
-            SimpleEntry<String, Double> var = variable(ch);
-            if (var.getValue() == null) throw new UnknownVariableException(var.getKey());
-            result = var.getValue();
-        }
-
-        // If the first character is a digit, it's a number
-        else if (isDigit(ch)) result = unsigned_constant(ch);
-
-            // If the first character is a opening parenthesis, it's an enclosed expression
-        else if (ch == '(') {
-            ch = next();
-            while (ch == ' ') ch = next();
-            result = expression(ch);
-            ch = read();
-            if (ch == ')') ch = next();
-            else throw new IncorrectSyntaxException(line, index);
-        } else throw new IncorrectSyntaxException(line, index);
-
-        ch = read();
-        while (ch == ' ') ch = next();
-
-        return s * result;
-    }
-
-    private double sign(char ch) {
-        double result;
-        if (ch == '+') result = 1;
-        else result = -1;
-
-        ch = next();
-        while (ch == ' ') ch = next();
-
-        return result;
-    }
-
-    private double unsigned_constant(char ch) {
-        String result = "";
-
-        // Build number from digits
-        while (isDigit(ch)) {
-            result = result + ch;
-            ch = next();
-        }
-
-        // Allow decimals, separated by a period or a comma
-        if (ch == '.' || ch == ',') {
-            result = result + '.';
-            ch = next();
-            while (isDigit(ch)) {
-                result = result + ch;
-                ch = next();
-            }
-        }
-
-        while (ch == ' ') ch = next();
-
-        // Though unlikely to be reached, it would probably be best to implement additional checks
-        // following the conversion to ensure the value did not exceed the range permissible for a
-        // double (i.e. the result is between Double.MIN_VALUE and Double.MAX_VALUE and is not INF)
-        return Double.parseDouble(result);
-    }
+    // Value range is checked in parent method, as it may be dependent on the preceding sign
+    return Double.parseDouble(result.toString());
+  }
 }

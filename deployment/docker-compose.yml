@@ -3,7 +3,7 @@ version: '3.8'
 services:
 
   umweltrechner:
-    build: ../umweltrechner/.
+    build: ../umweltrechner
     image: umweltrechno
     container_name: umweltrechner
     depends_on:
@@ -54,7 +54,7 @@ services:
       - umweltrechner-backend-keycloak-mysql
     restart: unless-stopped
     environment:
-      KEYCLOAK_FRONTEND_URL: https://keycloak.sensorguard.systems/auth
+      KEYCLOAK_FRONTEND_URL: http://localhost:8080/auth
       DB_VENDOR: MYSQL
       DB_ADDR: umweltrechner-backend-keycloak-mysql
       DB_DATABASE: keycloak
@@ -62,8 +62,6 @@ services:
       DB_PASSWORD: password
       KEYCLOAK_USER: develop
       KEYCLOAK_PASSWORD: develop
-      PROXY_ADDRESS_FORWARDING: true
-      REDIRECT_SOCKET: "proxy-https"
     ports:
       - "8080:8080"
     volumes:

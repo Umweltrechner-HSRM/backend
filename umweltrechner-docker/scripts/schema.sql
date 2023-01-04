@@ -39,6 +39,7 @@ create table if not exists umweltrechner.dashboard
     id   varchar(36)  not null
         primary key,
     name varchar(100) not null,
+    created_at timestamp null,
     constraint name
         unique (name)
 );

@@ -54,7 +54,7 @@ services:
       - umweltrechner-backend-keycloak-mysql
     restart: unless-stopped
     environment:
-      KEYCLOAK_BACKEND_URL: http://keycloak:8080/auth
+      KEYCLOAK_FRONTEND_URL: https://keycloak.sensorguard.systems/auth
       DB_VENDOR: MYSQL
       DB_ADDR: umweltrechner-backend-keycloak-mysql
       DB_DATABASE: keycloak
@@ -62,6 +62,8 @@ services:
       DB_PASSWORD: password
       KEYCLOAK_USER: develop
       KEYCLOAK_PASSWORD: develop
+      PROXY_ADDRESS_FORWARDING: true
+      REDIRECT_SOCKET: "proxy-https"
     ports:
       - "8080:8080"
     volumes:

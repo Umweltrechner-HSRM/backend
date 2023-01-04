@@ -30,6 +30,7 @@ services:
       MYSQL_TCP_PORT: 3312
     volumes:
       - ./../umweltrechner-docker/scripts:/docker-entrypoint-initdb.d/
+      - ./../umweltrechner-docker/mysql:/var/lib/mysql
     networks:
       - umweltrechner
 
@@ -42,6 +43,8 @@ services:
       MYSQL_DATABASE: keycloak
       MYSQL_USER: keycloak
       MYSQL_PASSWORD: password
+    volumes:
+      - ./../umweltrechner-keycloak-docker/mysql:/var/lib/mysql
     ports:
       - "3320:3320"
     networks:

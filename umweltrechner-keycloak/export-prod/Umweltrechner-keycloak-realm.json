@@ -1,5 +1,6 @@
 {
   "id": "Umweltrechner-keycloak",
+  "displayName": "Sensor Guard",
   "realm": "Umweltrechner-keycloak",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",

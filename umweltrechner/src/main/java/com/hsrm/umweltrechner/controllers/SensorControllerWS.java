@@ -31,15 +31,22 @@ public class SensorControllerWS {
 
 
   @MessageMapping("/{sensor}")
-  public void sendTemperature(@DestinationVariable("sensor") String sensor, DtoSensorData sensorData) throws OutOfRangeException, InvalidSymbolException {
-    log.info("Received temperature data from sensor " + sensor + ": " + sensorData);
-    formulaInterpreterService.addSensorValue(sensor, sensorData.getValue(), sensorData.getTimestamp());
+  public void sendTemperature(@DestinationVariable("sensor") String sensor,
+      DtoSensorData sensorData) throws OutOfRangeException, InvalidSymbolException {
+    if (!formulaInterpreterService.variableExists(sensor)) {
+      log.info("Someone tried to send data to a non existing sensor: " + sensor);
+      return;
+    }
+
+    formulaInterpreterService.addSensorValue(sensor, sensorData.getValue(),
+        sensorData.getTimestamp());
   }
 
   @Scheduled(fixedRate = 1000)
-  public void scheduledVariables(){
-    HashMap<String, SymbolTable.SymbolEntry> variables = formulaInterpreterService.calculateAndGetVariables();
-    if(variables != null){
+  public void scheduledVariables() {
+    HashMap<String, SymbolTable.SymbolEntry> variables =
+        formulaInterpreterService.calculateAndGetVariables();
+    if (variables != null) {
       formulaInterpreterService.calculateAndGetVariables().forEach((key, value) -> {
         log.info("Sending sensor data for sensor " + key + ": " + value);
         DtoSensorData sensorData = new DtoSensorData();

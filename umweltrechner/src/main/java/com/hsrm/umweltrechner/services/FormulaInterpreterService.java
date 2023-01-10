@@ -2,7 +2,9 @@ package com.hsrm.umweltrechner.services;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
@@ -14,7 +16,9 @@ import com.hsrm.umweltrechner.dao.mapper.FormulaMapper;
 import com.hsrm.umweltrechner.dao.mapper.SensorMapper;
 import com.hsrm.umweltrechner.dao.mapper.VariableMapper;
 import com.hsrm.umweltrechner.dao.model.Variable;
-import com.hsrm.umweltrechner.syntax.FormelInterpreter;
+import com.hsrm.umweltrechner.dto.DtoVariableData;
+import com.hsrm.umweltrechner.syntax.Interpreter;
+import com.hsrm.umweltrechner.syntax.SymbolTable;
 import com.hsrm.umweltrechner.syntax.exception.DivideByZeroException;
 import com.hsrm.umweltrechner.syntax.exception.DomainException;
 import com.hsrm.umweltrechner.syntax.exception.IllegalWriteException;
@@ -22,8 +26,6 @@ import com.hsrm.umweltrechner.syntax.exception.IncorrectSyntaxException;
 import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
 import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
 import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
-import com.hsrm.umweltrechner.syntax.Interpreter;
-import com.hsrm.umweltrechner.syntax.SymbolTable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +43,9 @@ public class FormulaInterpreterService {
   private final FormulaMapper formulaMapper;
 
   private final VariableMapper variablesMapper;
+
+  private final ConcurrentHashMap<String, SymbolTable.SymbolEntry> lastUpdates =
+      new ConcurrentHashMap<>();
 
 
   @Autowired
@@ -80,17 +85,17 @@ public class FormulaInterpreterService {
     List<Variable> variablesFromTable = variablesMapper.selectAll();
     List<String> nameOfVariablesInTable = new ArrayList<>();
 
-    for (var variableFromTable : variablesFromTable){
+    for (var variableFromTable : variablesFromTable) {
       nameOfVariablesInTable.add(variableFromTable.getName());
     }
-    for (var variable : variables){
-      if (!nameOfVariablesInTable.contains(variable)){
+    for (var variable : variables) {
+      if (!nameOfVariablesInTable.contains(variable)) {
         variablesMapper.insert(
             Variable.builder().name(variable).maxThreshold(null).minThreshold(null).build());
       }
     }
-    for (var variable : nameOfVariablesInTable){
-      if (!variables.contains(variable)){
+    for (var variable : nameOfVariablesInTable) {
+      if (!variables.contains(variable)) {
         variablesMapper.deleteByName(variable);
       }
     }
@@ -109,14 +114,16 @@ public class FormulaInterpreterService {
   }
 
 
-  public HashMap<String, SymbolTable.SymbolEntry> calculateAndGetVariables() {
+  public List<DtoVariableData> calculateAndGetVariables() {
     if (interpreter.getVariables().isEmpty()) {
       return null;
     }
     try {
       interpreter.calculate();
       List<Variable> variableList = variableService.getAllVariables();
-      for (var variable: variableList){
+      // compare thresholds from variable table with calculated values
+      // and send signal
+      for (var variable : variableList) {
         boolean isDanger = false;
         if (variable.getMinThreshold() != null && interpreter.getVariables().get(variable.getName()) <= variable.getMinThreshold()) {
           isDanger = true;
@@ -124,16 +131,29 @@ public class FormulaInterpreterService {
         if (variable.getMaxThreshold() != null && interpreter.getVariables().get(variable.getName()) >= variable.getMaxThreshold()) {
           isDanger = true;
         }
-        if(isDanger){
+        if (isDanger) {
           log.warn("Variable " + variable.getName() + " is in danger!");
         }
       }
-      // compare thresholds from variable table with calculated values
-      // and send signal
+
     } catch (Exception e) {
       log.error("Error while calculating formula", e);
     }
-    return interpreter.getVariablesWithFlag();
+
+    // only return variables/got a new timestamp that have changed from last computation
+    HashMap<String, SymbolTable.SymbolEntry> xs = interpreter.getVariablesWithFlag();
+    List<DtoVariableData> result = new LinkedList<>();
+    for (var x : xs.entrySet()) {
+      String key = x.getKey();
+      SymbolTable.SymbolEntry value = x.getValue();
+      long lastModified = value.getLastModified();
+      SymbolTable.SymbolEntry lastUpdate = lastUpdates.get(key);
+      if (lastUpdate == null || lastUpdate.getLastModified() != lastModified) {
+        lastUpdates.put(key, value);
+        result.add(new DtoVariableData(key, value.getValue(), lastModified));
+      }
+    }
+    return result;
   }
 
   public List<String> getVariableNames() {
@@ -141,7 +161,8 @@ public class FormulaInterpreterService {
   }
 
 
-  public void checkSyntax(String formula) throws DivideByZeroException, DomainException, UnknownSymbolException, IllegalWriteException, IncorrectSyntaxException, OutOfRangeException {
+  public void checkSyntax(String formula) throws DivideByZeroException, DomainException,
+      UnknownSymbolException, IllegalWriteException, IncorrectSyntaxException, OutOfRangeException {
     interpreter.checkSyntax(formula);
   }
 

@@ -1,16 +1,16 @@
 package com.hsrm.umweltrechner.dao.model;
 
 import java.time.ZonedDateTime;
-import java.util.UUID;
 
+import com.hsrm.umweltrechner.dao.model.general.HasId;
+import com.hsrm.umweltrechner.dao.model.general.HasModificationInfo;
 import com.hsrm.umweltrechner.dao.model.types.DashboardComponentType;
 import com.hsrm.umweltrechner.dto.DtoDashboardComponent;
-import com.hsrm.umweltrechner.util.CurrentSession;
 
 import lombok.Data;
 
 @Data
-public class DashboardComponent {
+public class DashboardComponent implements HasId, HasModificationInfo {
 
   private String id;
 
@@ -32,16 +32,12 @@ public class DashboardComponent {
 
   public static DashboardComponent from(DtoDashboardComponent dtoDashboardComponent) {
     DashboardComponent dashboardComponent = new DashboardComponent();
-    dashboardComponent.setId(UUID.randomUUID().toString());
+    dashboardComponent.generateId();
     dashboardComponent.setType(dtoDashboardComponent.getType());
     dashboardComponent.setName(dtoDashboardComponent.getName());
     dashboardComponent.setVariable(dtoDashboardComponent.getVariable());
     dashboardComponent.setVariableColor(dtoDashboardComponent.getVariableColor());
-    ZonedDateTime now = ZonedDateTime.now();
-    dashboardComponent.setCreatedAt(now);
-    dashboardComponent.setCreatedBy(CurrentSession.getCurrentUserName());
-    dashboardComponent.setChangedAt(now);
-    dashboardComponent.setChangedBy(CurrentSession.getCurrentUserName());
+    dashboardComponent.prepareInsert();
     return dashboardComponent;
   }
 

@@ -4,8 +4,10 @@ import lombok.Data;
 
 import java.time.ZonedDateTime;
 
+import com.hsrm.umweltrechner.dao.model.general.HasId;
+
 @Data
-public class Dashboard {
+public class Dashboard implements HasId {
 
   private String id;
 

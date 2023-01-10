@@ -1,7 +1,7 @@
 package com.hsrm.umweltrechner.services;
 
 
-import java.util.UUID;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,6 @@ import com.hsrm.umweltrechner.syntax.exception.IllegalWriteException;
 import com.hsrm.umweltrechner.syntax.exception.IncorrectSyntaxException;
 import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
 import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
-import com.hsrm.umweltrechner.syntax.FormelInterpreter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,8 +42,12 @@ public class FormulaService {
   public void addFormula(DtoFormula formula) {
     Formula f = new Formula();
     f.setFormula(formula.getFormula());
-    f.setId(UUID.randomUUID().toString());
+    f.generateId();
     formulaMapper.insert(f);
     formulaInterpreterService.addFormula();
+  }
+
+  public List<Formula> getAllFormulas() {
+    return formulaMapper.selectAll();
   }
 }

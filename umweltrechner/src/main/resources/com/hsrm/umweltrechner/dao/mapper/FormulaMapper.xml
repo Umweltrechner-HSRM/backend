@@ -5,15 +5,26 @@
     <resultMap id="BaseResultMap" type="com.hsrm.umweltrechner.dao.model.Formula">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="formula" jdbcType="VARCHAR" property="formula"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="created_by" jdbcType="VARCHAR" property="createdBy"/>
+        <result column="changed_at" jdbcType="TIMESTAMP" property="changedAt"/>
+        <result column="changed_by" jdbcType="VARCHAR" property="changedBy"/>
     </resultMap>
+
+
     <insert id="insert" parameterType="com.hsrm.umweltrechner.dao.model.Formula">
-        INSERT INTO formula (id, formula)
+        INSERT INTO formula (id, formula, created_at, created_by, changed_at, changed_by)
         VALUES (#{id,jdbcType=VARCHAR},
-                #{formula,jdbcType=VARCHAR})
+                #{formula,jdbcType=VARCHAR},
+                #{createdAt,jdbcType=TIMESTAMP},
+                #{createdBy,jdbcType=VARCHAR},
+                #{changedAt,jdbcType=TIMESTAMP},
+                #{changedBy,jdbcType=VARCHAR})
     </insert>
 
     <select id="selectAll" resultMap="BaseResultMap">
-        SELECT id, formula
+        SELECT id, formula, created_at, created_by, changed_at, changed_by
         from formula
+        order by created_at
     </select>
 </mapper>

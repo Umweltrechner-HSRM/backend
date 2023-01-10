@@ -4,8 +4,8 @@
 
     <resultMap id="BaseResultMap" type="com.hsrm.umweltrechner.dao.model.Variable">
         <result column="name" jdbcType="VARCHAR" property="name"/>
-        <result column="min_threshold" jdbcType="DOUBLE" property="minThreshold"/>
-        <result column="max_threshold" jdbcType="DOUBLE" property="maxThreshold"/>
+        <result column="minThreshold" jdbcType="DOUBLE" property="minThreshold"/>
+        <result column="maxThreshold" jdbcType="DOUBLE" property="maxThreshold"/>
     </resultMap>
     <insert id="insert">
         INSERT INTO variable (name, minThreshold, maxThreshold)

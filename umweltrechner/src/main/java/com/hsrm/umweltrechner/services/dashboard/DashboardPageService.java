@@ -2,7 +2,6 @@ package com.hsrm.umweltrechner.services.dashboard;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,7 +33,7 @@ public class DashboardPageService {
   public DtoDashboard addDashboard(DtoDashboard dtoDashboard) {
     Dashboard dashboard = new Dashboard();
     dashboard.setName(dtoDashboard.getName());
-    dashboard.setId(UUID.randomUUID().toString());
+    dashboard.generateId();
     dashboard.setCreatedAt(ZonedDateTime.now());
     dashboardMapper.insert(dashboard);
     if (dtoDashboard.getComponents() != null) {

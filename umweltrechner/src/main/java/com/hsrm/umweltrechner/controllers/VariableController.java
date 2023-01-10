@@ -40,7 +40,6 @@ public class VariableController {
     return ResponseEntity.ok(variableService.getAllVariables());
   }
   
-  // Put endpoint to update thresholds
   @PutMapping(value = "/updateThreshold")
   public ResponseEntity<String> updateVariable(@RequestBody DtoVariable variable){
     List<Variable> variables = variable.getVariables();

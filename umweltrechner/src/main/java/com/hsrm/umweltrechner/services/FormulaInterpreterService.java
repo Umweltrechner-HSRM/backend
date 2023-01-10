@@ -116,7 +116,7 @@ public class FormulaInterpreterService {
 
   public List<DtoVariableData> calculateAndGetVariables() {
     if (interpreter.getVariables().isEmpty()) {
-      return null;
+      return new LinkedList<>();
     }
     try {
       interpreter.calculate();

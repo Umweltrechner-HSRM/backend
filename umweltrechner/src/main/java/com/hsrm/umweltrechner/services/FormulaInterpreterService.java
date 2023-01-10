@@ -101,12 +101,14 @@ public class FormulaInterpreterService {
     }
   }
 
-  public void addSensorValue(String sensorName, Double value, Long ts) throws OutOfRangeException, InvalidSymbolException {
-    if (value == null) {
-      value = (double) 0xBabeCafe;
-    }
-    long timestamp = ts != null ? ts : System.currentTimeMillis();
-    interpreter.addSensor(sensorName, value, timestamp);
+  public void addSensorValue(String sensorName, Double value, long ts) throws OutOfRangeException,
+      InvalidSymbolException {
+    interpreter.addSensor(sensorName, value, ts);
+  }
+
+  public void registerSensor(String sensorName, Double value) throws OutOfRangeException,
+      InvalidSymbolException {
+    interpreter.addSensor(sensorName, value);
   }
 
   public void addFormula() {

@@ -34,8 +34,7 @@ public class SensorControllerWS {
   public void sendTemperature(@DestinationVariable("sensor") String sensor,
       DtoVariableData sensorData) throws OutOfRangeException, InvalidSymbolException {
     if (!formulaInterpreterService.variableExists(sensor)) {
-      log.info("Someone tried to send data to a non existing sensor: " + sensor);
-      return;
+      throw new IllegalArgumentException("Sensor does not exist: " + sensor);
     }
 
     formulaInterpreterService.addSensorValue(sensor, sensorData.getValue(),

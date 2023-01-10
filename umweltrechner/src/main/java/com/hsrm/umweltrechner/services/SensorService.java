@@ -32,7 +32,8 @@ public class SensorService {
   public Sensor addOrUpdateSensor(Sensor sensor) throws OutOfRangeException, InvalidSymbolException {
     sensorMapper.deleteByName(sensor.getName());
     sensorMapper.insert(sensor);
-    formulaInterpreterService.addSensorValue(sensor.getName(), sensor.getValue(), null);
+    formulaInterpreterService.registerSensor(sensor.getName(), sensor.getValue() == null ?
+        0xBabeCafe : sensor.getValue());
     return sensor;
   }
 

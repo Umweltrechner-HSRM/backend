@@ -15,6 +15,6 @@ docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ## live
-API: https://api.sensorguard.systems/api
-Keycloak(Authentication Server): https://keycloak.sensorguard.systems
-Webpage: https://sensorguard.systems
+API: https://api.sensorguard.systems/api  
+Keycloak(Authentication Server): https://keycloak.sensorguard.systems  
+Webpage: https://sensorguard.systems  

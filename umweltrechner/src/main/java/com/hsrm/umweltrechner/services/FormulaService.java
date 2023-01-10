@@ -43,6 +43,7 @@ public class FormulaService {
     Formula f = new Formula();
     f.setFormula(formula.getFormula());
     f.generateId();
+    f.prepareInsert();
     formulaMapper.insert(f);
     formulaInterpreterService.addFormula();
   }

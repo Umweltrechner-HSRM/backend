@@ -1,6 +1,5 @@
 package com.hsrm.umweltrechner.services.dashboard;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import com.hsrm.umweltrechner.dao.model.DashboardComponent;
 import com.hsrm.umweltrechner.dto.DtoDashboardComponent;
 import com.hsrm.umweltrechner.exceptions.NotFoundException;
 import com.hsrm.umweltrechner.services.FormulaInterpreterService;
-import com.hsrm.umweltrechner.util.CurrentSession;
 
 @Service
 public class DashboardComponentService {
@@ -53,8 +51,7 @@ public class DashboardComponentService {
     dashboardComponent.setName(dtoDashboardComponent.getName());
     dashboardComponent.setVariable(dtoDashboardComponent.getVariable());
     dashboardComponent.setVariableColor(dtoDashboardComponent.getVariableColor());
-    dashboardComponent.setChangedAt(ZonedDateTime.now());
-    dashboardComponent.setChangedBy(CurrentSession.getCurrentUserName());
+    dashboardComponent.prepareUpdate();
     dashboardComponentMapper.update(dashboardComponent);
 
     return DtoDashboardComponent.from(dashboardComponent);

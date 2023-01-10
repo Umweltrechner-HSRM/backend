@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 
+import com.google.common.base.Preconditions;
 import com.hsrm.umweltrechner.dto.DtoVariableData;
 import com.hsrm.umweltrechner.services.FormulaInterpreterService;
 import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
@@ -31,6 +32,9 @@ public class SensorControllerWS {
   @MessageMapping("/{sensor}")
   public void sendTemperature(@DestinationVariable("sensor") String sensor,
       DtoVariableData sensorData) throws OutOfRangeException, InvalidSymbolException {
+    Preconditions.checkNotNull(sensorData.getTimestamp());
+    Preconditions.checkNotNull(sensorData.getValue());
+
     if (!formulaInterpreterService.variableExists(sensor)) {
       throw new IllegalArgumentException("Sensor does not exist: " + sensor);
     }

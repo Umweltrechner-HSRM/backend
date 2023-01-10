@@ -2,12 +2,15 @@ CREATE DATABASE IF NOT EXISTS umweltrechner;
 
 create table if not exists umweltrechner.formula
 (
-    id         varchar(36)   not null primary key,
-    formula    varchar(1000) null,
-    created_at timestamp     null,
-    created_by varchar(100)  not null,
-    changed_at timestamp     null,
-    changed_by varchar(100)  not null
+    id         varchar(36)  not null
+        primary key,
+    formula    varchar(512) null,
+    created_at timestamp    null,
+    created_by varchar(100) not null,
+    changed_at timestamp    null,
+    changed_by varchar(100) not null,
+    constraint formula
+        unique (formula)
 );
 
 create table if not exists umweltrechner.variable

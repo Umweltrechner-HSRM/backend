@@ -5,12 +5,15 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.hsrm.umweltrechner.dao.model.Formula;
 import com.hsrm.umweltrechner.dto.DtoFormula;
 import com.hsrm.umweltrechner.services.FormulaService;
@@ -36,6 +39,7 @@ public class FormulaController {
   @PostMapping("/add")
   @PreAuthorize("hasRole('admin')")
   public ResponseEntity<Void> addFormula(@RequestBody DtoFormula formula) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(formula.getFormula()));
     formulaService.addFormula(formula);
     return ResponseEntity.ok().build();
   }

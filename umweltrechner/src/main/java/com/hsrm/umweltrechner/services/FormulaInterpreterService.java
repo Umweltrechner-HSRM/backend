@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import com.hsrm.umweltrechner.dao.mapper.FormulaMapper;
 import com.hsrm.umweltrechner.dao.mapper.SensorMapper;
 import com.hsrm.umweltrechner.dao.mapper.VariableMapper;
+import com.hsrm.umweltrechner.dao.model.Formula;
 import com.hsrm.umweltrechner.dao.model.Variable;
 import com.hsrm.umweltrechner.dto.DtoVariableData;
 import com.hsrm.umweltrechner.syntax.Interpreter;
@@ -64,22 +66,22 @@ public class FormulaInterpreterService {
   @PostConstruct
   private void init() {
     sensorMapper.selectAll().forEach(sensor -> {
-      double value = sensor.getValue() != null ? sensor.getValue() : (double) 10.0;
+      double value = sensor.getValue() != null ? sensor.getValue() : 0xBabeCafe;
       try {
         interpreter.addSensor(sensor.getName(), value);
       } catch (OutOfRangeException | InvalidSymbolException e) {
         throw new RuntimeException(e);
       }
     });
-    formulaMapper.selectAll().forEach(formula -> {
-      try {
-        interpreter.checkSyntax(formula.getFormula());
-        interpreter.setEquations(formula.getFormula());
-        interpreter.calculate();
-      } catch (Exception e) {
-        log.error("Error while parsing formula " + formula.getFormula(), e);
-      }
-    });
+    List<Formula> formulas = formulaMapper.selectAll();
+    String eqs = formulas.stream().map(Formula::getFormula).collect(Collectors.joining("\n"));
+    try {
+      interpreter.checkSyntax(eqs);
+      interpreter.setEquations(eqs);
+      interpreter.calculate();
+    } catch (Exception e) {
+      log.error("Error while parsing formula " + e);
+    }
 
     List<String> variables = getVariableNames();
     List<Variable> variablesFromTable = variablesMapper.selectAll();

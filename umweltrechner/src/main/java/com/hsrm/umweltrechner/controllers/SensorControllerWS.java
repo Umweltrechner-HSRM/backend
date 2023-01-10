@@ -42,7 +42,7 @@ public class SensorControllerWS {
         sensorData.getTimestamp());
   }
 
-  @Scheduled(fixedRate = 1000)
+  @Scheduled(fixedRate = 500)
   public void scheduledVariables() {
     formulaInterpreterService.calculateAndGetVariables().forEach((x) -> {
       template.convertAndSend("/topic/" + x.getVariableName(), x);

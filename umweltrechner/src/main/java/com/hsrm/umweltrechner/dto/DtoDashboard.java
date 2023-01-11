@@ -14,7 +14,7 @@ public class DtoDashboard {
 
   private ZonedDateTime createdAt;
 
-  private List<DtoDashboardComponentWithPosition> components;
+  private List<DtoDashboardComponent> components;
 
 
 }

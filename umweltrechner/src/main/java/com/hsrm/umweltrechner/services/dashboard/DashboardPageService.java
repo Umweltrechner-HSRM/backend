@@ -12,7 +12,8 @@ import com.hsrm.umweltrechner.dao.mapper.DashboardPageMapper;
 import com.hsrm.umweltrechner.dao.model.Dashboard;
 import com.hsrm.umweltrechner.dao.model.DashboardPage;
 import com.hsrm.umweltrechner.dto.DtoDashboard;
-import com.hsrm.umweltrechner.dto.DtoDashboardComponentWithPosition;
+import com.hsrm.umweltrechner.dto.DtoDashboardComponent;
+import com.hsrm.umweltrechner.dto.DtoDashboardUpdate;
 import com.hsrm.umweltrechner.exceptions.NotFoundException;
 
 
@@ -37,9 +38,11 @@ public class DashboardPageService {
     dashboard.setCreatedAt(ZonedDateTime.now());
     dashboardMapper.insert(dashboard);
     if (dtoDashboard.getComponents() != null) {
-      dtoDashboard.getComponents().stream()
-          .map(c -> DashboardPage.from(dashboard.getId(), c.getId(), c.getPosition()))
-          .forEach(page -> dashboardPageMapper.insert(page));
+      for (int i = 0; i < dtoDashboard.getComponents().size(); i++) {
+        DtoDashboardComponent component = dtoDashboard.getComponents().get(i);
+        DashboardPage page = DashboardPage.from(dashboard.getId(), component.getId(), i);
+        dashboardPageMapper.insert(page);
+      }
     }
     return dashboardMapper.selectFullDashboardbyId(dashboard.getId());
   }
@@ -49,7 +52,7 @@ public class DashboardPageService {
     dashboardMapper.deleteById(id);
   }
 
-  public DtoDashboard updateDashboard(DtoDashboard dashboard) {
+  public DtoDashboard updateDashboard(DtoDashboardUpdate dashboard) {
     Dashboard oldDashboard = dashboardMapper.selectById(dashboard.getId());
     if (oldDashboard == null) {
       throw new NotFoundException("Dashboard not found with id=" + dashboard.getId());
@@ -61,11 +64,9 @@ public class DashboardPageService {
 
     if (dashboard.getComponents() != null) {
       for (int i = 0; i < dashboard.getComponents().size(); i++) {
-        DtoDashboardComponentWithPosition component = dashboard.getComponents().get(i);
-        DashboardPage page = DashboardPage.from(dashboard.getId(), component.getId(), i);
+        DashboardPage page = DashboardPage.from(dashboard.getId(), dashboard.getComponents().get(i), i);
         dashboardPageMapper.insert(page);
       }
-
     }
     return dashboardMapper.selectFullDashboardbyId(dashboard.getId());
 

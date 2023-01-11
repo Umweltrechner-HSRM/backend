@@ -6,13 +6,12 @@
         <id column="dashboard_id" property="id"/>
         <result column="dashboard_name" property="name"/>
         <result column="dashboard_created_at" property="createdAt"/>
-        <collection property="components" ofType="com.hsrm.umweltrechner.dto.DtoDashboardComponentWithPosition">
+        <collection property="components" ofType="com.hsrm.umweltrechner.dto.DtoDashboardComponent">
             <result column="dashboard_component_id" property="id"/>
             <result column="dashboard_component_name" property="name"/>
             <result column="dashboard_component_type" property="type"/>
             <result column="dashboard_component_variable" property="variable"/>
             <result column="dashboard_component_variable_color" property="variableColor"/>
-            <result column="dashboard_component_position" property="position"/>
         </collection>
     </resultMap>
 

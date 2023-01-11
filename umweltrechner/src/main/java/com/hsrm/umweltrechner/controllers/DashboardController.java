@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.common.base.Preconditions;
 import com.hsrm.umweltrechner.dto.DtoDashboard;
 import com.hsrm.umweltrechner.dto.DtoDashboardComponent;
+import com.hsrm.umweltrechner.dto.DtoDashboardUpdate;
 import com.hsrm.umweltrechner.services.dashboard.DashboardComponentService;
 import com.hsrm.umweltrechner.services.dashboard.DashboardPageService;
 
@@ -50,7 +51,8 @@ public class DashboardController {
 
   @PutMapping("/{id}")
   @PreAuthorize("hasRole('admin')")
-  public DtoDashboard updateDashboard(@PathVariable("id") String id, @RequestBody DtoDashboard dashboard) {
+  public DtoDashboard updateDashboard(@PathVariable("id") String id,
+      @RequestBody DtoDashboardUpdate dashboard) {
     Preconditions.checkArgument(id.equalsIgnoreCase(dashboard.getId()));
     return dashboardPageService.updateDashboard(dashboard);
   }

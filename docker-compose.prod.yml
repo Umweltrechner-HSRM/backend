@@ -67,7 +67,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./keycloak/export:/tmp/export-prod/
+      - ./keycloak/export-prod:/tmp/export/
     command:
       - "-Dkeycloak.migration.provider=dir"
       - "-Dkeycloak.migration.action=import"

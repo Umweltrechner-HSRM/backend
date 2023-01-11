@@ -4,6 +4,7 @@ import java.time.ZonedDateTime;
 
 import com.hsrm.umweltrechner.dao.model.general.HasId;
 import com.hsrm.umweltrechner.dao.model.general.HasModificationInfo;
+import com.hsrm.umweltrechner.dao.model.types.DashboardComponentStrokeType;
 import com.hsrm.umweltrechner.dao.model.types.DashboardComponentType;
 import com.hsrm.umweltrechner.dto.DtoDashboardComponent;
 
@@ -22,6 +23,8 @@ public class DashboardComponent implements HasId, HasModificationInfo {
 
   private String variableColor;
 
+  private DashboardComponentStrokeType stroke;
+
   private ZonedDateTime createdAt;
 
   private String createdBy;
@@ -37,6 +40,7 @@ public class DashboardComponent implements HasId, HasModificationInfo {
     dashboardComponent.setName(dtoDashboardComponent.getName());
     dashboardComponent.setVariable(dtoDashboardComponent.getVariable());
     dashboardComponent.setVariableColor(dtoDashboardComponent.getVariableColor());
+    dashboardComponent.setStroke(dtoDashboardComponent.getStroke());
     dashboardComponent.prepareInsert();
     return dashboardComponent;
   }

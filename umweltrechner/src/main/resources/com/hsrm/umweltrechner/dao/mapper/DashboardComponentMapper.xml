@@ -8,6 +8,7 @@
         <result column="type" jdbcType="VARCHAR" property="type"/>
         <result column="variable" jdbcType="VARCHAR" property="variable"/>
         <result column="variable_color" jdbcType="VARCHAR" property="variableColor"/>
+        <result column="stroke" jdbcType="VARCHAR" property="stroke"/>
         <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
         <result column="created_by" jdbcType="VARCHAR" property="createdBy"/>
         <result column="changed_at" jdbcType="TIMESTAMP" property="changedAt"/>
@@ -20,16 +21,18 @@
         <result column="type" jdbcType="VARCHAR" property="type"/>
         <result column="variable" jdbcType="VARCHAR" property="variable"/>
         <result column="variable_color" jdbcType="VARCHAR" property="variableColor"/>
+        <result column="stroke" jdbcType="VARCHAR" property="stroke"/>
     </resultMap>
 
 
     <insert id="insert" parameterType="com.hsrm.umweltrechner.dao.model.DashboardComponent">
-        INSERT INTO dashboard_component (id, name, type, variable, variable_color, created_at, created_by, changed_at, changed_by)
+        INSERT INTO dashboard_component (id, name, type, variable, variable_color, stroke, created_at, created_by, changed_at, changed_by)
         VALUES (#{id,jdbcType=VARCHAR},
                 #{name,jdbcType=VARCHAR},
                 #{type,jdbcType=VARCHAR},
                 #{variable,jdbcType=VARCHAR},
                 #{variableColor,jdbcType=VARCHAR},
+                #{stroke,jdbcType=VARCHAR},
                 #{createdAt,jdbcType=TIMESTAMP},
                 #{createdBy,jdbcType=VARCHAR},
                 #{changedAt,jdbcType=TIMESTAMP},
@@ -42,6 +45,7 @@
             type = #{type,jdbcType=VARCHAR},
             variable = #{variable,jdbcType=VARCHAR},
             variable_color = #{variableColor,jdbcType=VARCHAR},
+            stroke = #{stroke,jdbcType=VARCHAR},
             created_at = #{createdAt,jdbcType=TIMESTAMP},
             created_by = #{createdBy,jdbcType=VARCHAR},
             changed_at = #{changedAt,jdbcType=TIMESTAMP},
@@ -56,12 +60,12 @@
     </delete>
 
     <select id="selectAll" resultMap="DtoResultMap">
-        SELECT id, name, type, variable, variable_color
+        SELECT id, name, type, variable, variable_color, stroke
         from dashboard_component
     </select>
 
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT id, name, type, variable, variable_color, created_at, created_by, changed_at, changed_by
+        SELECT id, name, type, variable, variable_color, stroke, created_at, created_by, changed_at, changed_by
         from dashboard_component
         WHERE id = #{id}
     </select>

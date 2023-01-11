@@ -2,6 +2,7 @@ package com.hsrm.umweltrechner.dto;
 
 
 import com.hsrm.umweltrechner.dao.model.DashboardComponent;
+import com.hsrm.umweltrechner.dao.model.types.DashboardComponentStrokeType;
 import com.hsrm.umweltrechner.dao.model.types.DashboardComponentType;
 
 import lombok.Data;
@@ -19,6 +20,8 @@ public class DtoDashboardComponent {
 
   private String variableColor;
 
+  private DashboardComponentStrokeType stroke;
+
 
   public static DtoDashboardComponent from(DashboardComponent dashboardComponent) {
     DtoDashboardComponent dtoDashboardComponent = new DtoDashboardComponent();
@@ -27,6 +30,7 @@ public class DtoDashboardComponent {
     dtoDashboardComponent.setName(dashboardComponent.getName());
     dtoDashboardComponent.setVariable(dashboardComponent.getVariable());
     dtoDashboardComponent.setVariableColor(dashboardComponent.getVariableColor());
+    dtoDashboardComponent.setStroke(dashboardComponent.getStroke());
     return dtoDashboardComponent;
   }
 

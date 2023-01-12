@@ -53,6 +53,8 @@ public class DashboardComponentService {
     dashboardComponent.setVariable(dtoDashboardComponent.getVariable());
     dashboardComponent.setVariableColor(dtoDashboardComponent.getVariableColor());
     dashboardComponent.setStroke(dtoDashboardComponent.getStroke());
+    dashboardComponent.setCreatedAt(oldDashboardComponent.getCreatedAt());
+    dashboardComponent.setCreatedBy(oldDashboardComponent.getCreatedBy());
     dashboardComponent.prepareUpdate();
     dashboardComponentMapper.update(dashboardComponent);
 

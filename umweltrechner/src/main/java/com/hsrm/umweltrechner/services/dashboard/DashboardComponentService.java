@@ -21,10 +21,11 @@ public class DashboardComponentService {
   private FormulaInterpreterService formulaInterpreterService;
 
   public DtoDashboardComponent addComponent(DtoDashboardComponent dtoDashboardComponent) {
-    DashboardComponent dashboardComponent = DashboardComponent.from(dtoDashboardComponent);
-    if (!formulaInterpreterService.variableExists(dashboardComponent.getVariable())) {
-      throw new IllegalArgumentException("Variable does not exist name=" + dashboardComponent.getVariable());
+    if (!formulaInterpreterService.variableExists(dtoDashboardComponent.getVariable())) {
+      throw new IllegalArgumentException("Variable does not exist name=" + dtoDashboardComponent.getVariable());
     }
+    DashboardComponent dashboardComponent = DashboardComponent.from(dtoDashboardComponent);
+    dashboardComponent.prepareInsert();
     dashboardComponentMapper.insert(dashboardComponent);
     return DtoDashboardComponent.from(dashboardComponent);
   }
@@ -51,6 +52,7 @@ public class DashboardComponentService {
     dashboardComponent.setName(dtoDashboardComponent.getName());
     dashboardComponent.setVariable(dtoDashboardComponent.getVariable());
     dashboardComponent.setVariableColor(dtoDashboardComponent.getVariableColor());
+    dashboardComponent.setStroke(dtoDashboardComponent.getStroke());
     dashboardComponent.prepareUpdate();
     dashboardComponentMapper.update(dashboardComponent);
 

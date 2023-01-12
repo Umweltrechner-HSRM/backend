@@ -41,7 +41,6 @@ public class DashboardComponent implements HasId, HasModificationInfo {
     dashboardComponent.setVariable(dtoDashboardComponent.getVariable());
     dashboardComponent.setVariableColor(dtoDashboardComponent.getVariableColor());
     dashboardComponent.setStroke(dtoDashboardComponent.getStroke());
-    dashboardComponent.prepareInsert();
     return dashboardComponent;
   }
 

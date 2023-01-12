@@ -37,15 +37,10 @@ public class DashboardComponentService {
   @Transactional
   public DtoDashboardComponent updateComponent(String id,
       DtoDashboardComponent dtoDashboardComponent) {
-    DashboardComponent oldDashboardComponent = dashboardComponentMapper.selectById(id);
-
-    if (oldDashboardComponent == null) {
-      throw new NotFoundException("DashboardComponent not found with id: " + id);
-    }
-
     if (!formulaInterpreterService.variableExists(dtoDashboardComponent.getVariable())) {
       throw new IllegalArgumentException("Variable does not exist name=" + dtoDashboardComponent.getVariable());
     }
+
     DashboardComponent dashboardComponent = new DashboardComponent();
     dashboardComponent.setId(id);
     dashboardComponent.setType(dtoDashboardComponent.getType());
@@ -54,7 +49,11 @@ public class DashboardComponentService {
     dashboardComponent.setVariableColor(dtoDashboardComponent.getVariableColor());
     dashboardComponent.setStroke(dtoDashboardComponent.getStroke());
     dashboardComponent.prepareUpdate();
-    dashboardComponentMapper.update(dashboardComponent);
+
+    int updated = dashboardComponentMapper.update(dashboardComponent);
+    if (updated == 0) {
+      throw new NotFoundException("DashboardComponent not found with id: " + id);
+    }
 
     return DtoDashboardComponent.from(dashboardComponent);
   }

@@ -18,5 +18,5 @@ public interface DashboardComponentMapper {
 
   DashboardComponent selectById(@Param("id") String id);
 
-  void update(DashboardComponent dashboardComponent);
+  int update(DashboardComponent dashboardComponent);
 }

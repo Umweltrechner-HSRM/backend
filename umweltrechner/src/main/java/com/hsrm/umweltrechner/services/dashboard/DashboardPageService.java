@@ -59,7 +59,6 @@ public class DashboardPageService {
     }
     oldDashboard.setName(dashboard.getName());
     dashboardMapper.update(oldDashboard);
-
     dashboardPageMapper.deleteByDashboardId(dashboard.getId());
 
     if (dashboard.getComponents() != null) {

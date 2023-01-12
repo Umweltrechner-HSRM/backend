@@ -30,6 +30,7 @@ services:
       MYSQL_TCP_PORT: 3312
     volumes:
       - ./migrations:/docker-entrypoint-initdb.d/
+      - ./migrations:/var/lib/mysql
     networks:
       - umweltrechner
 

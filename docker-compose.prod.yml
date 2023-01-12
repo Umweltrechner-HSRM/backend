@@ -56,7 +56,7 @@ services:
     environment:
       KEYCLOAK_FRONTEND_URL: https://keycloak.sensorguard.systems/auth
       DB_VENDOR: MYSQL
-      DB_ADDR: umweltrechner-backend-keycloak-mysql
+      DB_ADDR: keycloak-mysql
       DB_DATABASE: keycloak
       DB_USER: keycloak
       DB_PASSWORD: password

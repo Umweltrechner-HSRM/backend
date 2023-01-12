@@ -45,7 +45,7 @@ public class FormulaService {
     f.generateId();
     f.prepareInsert();
     formulaMapper.insert(f);
-    formulaInterpreterService.addFormula();
+    formulaInterpreterService.init();
   }
 
   public List<Formula> getAllFormulas() {

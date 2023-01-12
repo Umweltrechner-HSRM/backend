@@ -12,6 +12,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.hsrm.umweltrechner.dao.mapper.FormulaMapper;
 import com.hsrm.umweltrechner.dao.mapper.SensorMapper;
@@ -64,7 +65,8 @@ public class FormulaInterpreterService {
   }
 
   @PostConstruct
-  private void init() {
+  @Transactional
+  public void init() {
     sensorMapper.selectAll().forEach(sensor -> {
       double value = sensor.getValue() != null ? sensor.getValue() : 0xBabeCafe;
       try {
@@ -112,11 +114,6 @@ public class FormulaInterpreterService {
       InvalidSymbolException {
     interpreter.addSensor(sensorName, value);
   }
-
-  public void addFormula() {
-    init();
-  }
-
 
   public List<DtoVariableData> calculateAndGetVariables() {
     if (interpreter.getVariables().isEmpty()) {

@@ -8,7 +8,7 @@ docker-compose up -d
 ```
 
 ### production
-```
+```bash
 docker-compose -f docker-compose.prod.yml up -d
 ```
 

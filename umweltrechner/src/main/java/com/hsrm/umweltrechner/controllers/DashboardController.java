@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.base.Preconditions;
+import com.hsrm.umweltrechner.dao.model.DashboardComponent;
 import com.hsrm.umweltrechner.dto.DtoDashboard;
 import com.hsrm.umweltrechner.dto.DtoDashboardComponent;
 import com.hsrm.umweltrechner.dto.DtoDashboardUpdate;
@@ -59,7 +60,7 @@ public class DashboardController {
 
 
   @GetMapping("/components")
-  public List<DtoDashboardComponent> getDashboardComponents() {
+  public List<DashboardComponent> getDashboardComponents() {
     return dashboardComponentService.getDashboardComponents();
   }
 

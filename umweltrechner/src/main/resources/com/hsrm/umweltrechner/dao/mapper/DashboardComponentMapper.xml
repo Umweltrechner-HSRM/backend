@@ -59,8 +59,8 @@
         WHERE id = #{id}
     </delete>
 
-    <select id="selectAll" resultMap="DtoResultMap">
-        SELECT id, name, type, variable, variable_color, stroke
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT id, name, type, variable, variable_color, stroke, created_at, created_by, changed_at, changed_by
         from dashboard_component
     </select>
 

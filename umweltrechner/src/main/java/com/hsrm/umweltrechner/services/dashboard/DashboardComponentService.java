@@ -57,7 +57,7 @@ public class DashboardComponentService {
     return DtoDashboardComponent.from(dashboardComponent);
   }
 
-  public List<DtoDashboardComponent> getDashboardComponents() {
+  public List<DashboardComponent> getDashboardComponents() {
     return dashboardComponentMapper.selectAll();
   }
 }

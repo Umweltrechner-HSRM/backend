@@ -1,16 +1,14 @@
-"#backend" 
-Ich mach das spaeter aus amk 
+## Sensor Guard - A simple way to protect your sensors from the elements
+# University project
 
 ## Run the project
 ### local
 ```bash
-cd deployment
 docker-compose up -d
 ```
 
 ### production
 ```
-cd deployment
 docker-compose -f docker-compose.prod.yml up -d
 ```
 

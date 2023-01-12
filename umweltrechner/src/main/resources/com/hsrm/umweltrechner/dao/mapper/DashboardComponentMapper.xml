@@ -46,8 +46,6 @@
             variable = #{variable,jdbcType=VARCHAR},
             variable_color = #{variableColor,jdbcType=VARCHAR},
             stroke = #{stroke,jdbcType=VARCHAR},
-            created_at = #{createdAt,jdbcType=TIMESTAMP},
-            created_by = #{createdBy,jdbcType=VARCHAR},
             changed_at = #{changedAt,jdbcType=TIMESTAMP},
             changed_by = #{changedBy,jdbcType=VARCHAR}
         WHERE id = #{id,jdbcType=VARCHAR}

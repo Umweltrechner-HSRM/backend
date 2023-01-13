@@ -12,6 +12,7 @@
             <result column="dashboard_component_type" property="type"/>
             <result column="dashboard_component_variable" property="variable"/>
             <result column="dashboard_component_variable_color" property="variableColor"/>
+            <result column="dashboard_component_variable_stroke" property="stroke"/>
         </collection>
     </resultMap>
 
@@ -43,7 +44,8 @@
                dashboard_component.name as dashboard_component_name,
                type                     as dashboard_component_type,
                variable                 as dashboard_component_variable,
-               variable_color           as dashboard_component_variable_color
+               variable_color           as dashboard_component_variable_color,
+               stroke                   as dashboard_component_variable_stroke
         from dashboard
                  left join dashboard_page on dashboard.id = dashboard_page.dashboard_id
                  left join dashboard_component on dashboard_page.dashboard_component_id = dashboard_component.id
@@ -59,7 +61,8 @@
                dashboard_component.name as dashboard_component_name,
                type                     as dashboard_component_type,
                variable                 as dashboard_component_variable,
-               variable_color           as dashboard_component_variable_color
+               variable_color           as dashboard_component_variable_color,
+               stroke                   as dashboard_component_variable_stroke
         from dashboard
                  left join dashboard_page on dashboard.id = dashboard_page.dashboard_id
                  left join dashboard_component on dashboard_page.dashboard_component_id = dashboard_component.id

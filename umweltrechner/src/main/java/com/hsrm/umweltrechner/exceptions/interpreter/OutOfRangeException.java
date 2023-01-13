@@ -1,4 +1,4 @@
-package com.hsrm.umweltrechner.syntax.exception;
+package com.hsrm.umweltrechner.exceptions.interpreter;
 
 /**
  * Thrown if a value has exceeded the permissible range for type double. ({@link Double#MIN_VALUE} -

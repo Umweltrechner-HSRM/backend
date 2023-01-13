@@ -12,14 +12,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.hsrm.umweltrechner.syntax.exception.DivideByZeroException;
-import com.hsrm.umweltrechner.syntax.exception.DomainException;
-import com.hsrm.umweltrechner.syntax.exception.IllegalWriteException;
-import com.hsrm.umweltrechner.syntax.exception.IncorrectSyntaxException;
-import com.hsrm.umweltrechner.syntax.exception.InterpreterException;
-import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
-import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
-import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
+import com.hsrm.umweltrechner.exceptions.interpreter.DivideByZeroException;
+import com.hsrm.umweltrechner.exceptions.interpreter.DomainException;
+import com.hsrm.umweltrechner.exceptions.interpreter.IllegalWriteException;
+import com.hsrm.umweltrechner.exceptions.interpreter.IncorrectSyntaxException;
+import com.hsrm.umweltrechner.exceptions.interpreter.InterpreterException;
+import com.hsrm.umweltrechner.exceptions.interpreter.InvalidSymbolException;
+import com.hsrm.umweltrechner.exceptions.interpreter.OutOfRangeException;
+import com.hsrm.umweltrechner.exceptions.interpreter.UnknownSymbolException;
 
 @SpringBootTest
 public class FormelInterpreterTest {

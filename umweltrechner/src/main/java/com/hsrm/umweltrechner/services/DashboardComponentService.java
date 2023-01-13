@@ -1,4 +1,4 @@
-package com.hsrm.umweltrechner.services.dashboard;
+package com.hsrm.umweltrechner.services;
 
 import java.util.List;
 
@@ -10,7 +10,6 @@ import com.hsrm.umweltrechner.dao.mapper.DashboardComponentMapper;
 import com.hsrm.umweltrechner.dao.model.DashboardComponent;
 import com.hsrm.umweltrechner.dto.DtoDashboardComponent;
 import com.hsrm.umweltrechner.exceptions.NotFoundException;
-import com.hsrm.umweltrechner.services.FormulaInterpreterService;
 
 @Service
 public class DashboardComponentService {

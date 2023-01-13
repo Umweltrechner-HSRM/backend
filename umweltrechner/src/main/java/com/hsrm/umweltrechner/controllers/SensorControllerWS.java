@@ -12,8 +12,8 @@ import org.springframework.stereotype.Controller;
 import com.google.common.base.Preconditions;
 import com.hsrm.umweltrechner.dto.DtoVariableData;
 import com.hsrm.umweltrechner.services.FormulaInterpreterService;
-import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
-import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
+import com.hsrm.umweltrechner.exceptions.interpreter.InvalidSymbolException;
+import com.hsrm.umweltrechner.exceptions.interpreter.OutOfRangeException;
 
 import lombok.extern.slf4j.Slf4j;
 

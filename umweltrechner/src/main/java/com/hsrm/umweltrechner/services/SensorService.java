@@ -10,8 +10,8 @@ import com.hsrm.umweltrechner.dao.mapper.SensorMapper;
 import com.hsrm.umweltrechner.dao.mapper.VariableMapper;
 import com.hsrm.umweltrechner.dao.model.Sensor;
 import com.hsrm.umweltrechner.dao.model.Variable;
-import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
-import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
+import com.hsrm.umweltrechner.exceptions.interpreter.InvalidSymbolException;
+import com.hsrm.umweltrechner.exceptions.interpreter.OutOfRangeException;
 
 import lombok.extern.slf4j.Slf4j;
 

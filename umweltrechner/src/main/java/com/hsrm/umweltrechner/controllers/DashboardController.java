@@ -18,8 +18,8 @@ import com.hsrm.umweltrechner.dao.model.DashboardComponent;
 import com.hsrm.umweltrechner.dto.DtoDashboard;
 import com.hsrm.umweltrechner.dto.DtoDashboardComponent;
 import com.hsrm.umweltrechner.dto.DtoDashboardUpdate;
-import com.hsrm.umweltrechner.services.dashboard.DashboardComponentService;
-import com.hsrm.umweltrechner.services.dashboard.DashboardPageService;
+import com.hsrm.umweltrechner.services.DashboardComponentService;
+import com.hsrm.umweltrechner.services.DashboardPageService;
 
 @RestController
 @RequestMapping("/dashboard")

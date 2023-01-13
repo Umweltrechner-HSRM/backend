@@ -2,13 +2,13 @@ package com.hsrm.umweltrechner.syntax;
 
 import java.util.HashMap;
 
-import com.hsrm.umweltrechner.syntax.exception.DivideByZeroException;
-import com.hsrm.umweltrechner.syntax.exception.DomainException;
-import com.hsrm.umweltrechner.syntax.exception.IllegalWriteException;
-import com.hsrm.umweltrechner.syntax.exception.IncorrectSyntaxException;
-import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
-import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
-import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
+import com.hsrm.umweltrechner.exceptions.interpreter.DivideByZeroException;
+import com.hsrm.umweltrechner.exceptions.interpreter.DomainException;
+import com.hsrm.umweltrechner.exceptions.interpreter.IllegalWriteException;
+import com.hsrm.umweltrechner.exceptions.interpreter.IncorrectSyntaxException;
+import com.hsrm.umweltrechner.exceptions.interpreter.InvalidSymbolException;
+import com.hsrm.umweltrechner.exceptions.interpreter.OutOfRangeException;
+import com.hsrm.umweltrechner.exceptions.interpreter.UnknownSymbolException;
 
 public interface Interpreter {
 

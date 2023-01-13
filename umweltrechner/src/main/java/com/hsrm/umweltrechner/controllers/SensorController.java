@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.common.base.Preconditions;
 import com.hsrm.umweltrechner.dao.model.Sensor;
 import com.hsrm.umweltrechner.services.SensorService;
-import com.hsrm.umweltrechner.syntax.exception.InvalidSymbolException;
-import com.hsrm.umweltrechner.syntax.exception.OutOfRangeException;
+import com.hsrm.umweltrechner.exceptions.interpreter.InvalidSymbolException;
+import com.hsrm.umweltrechner.exceptions.interpreter.OutOfRangeException;
 
 @RestController
 @RequestMapping("/sensor")

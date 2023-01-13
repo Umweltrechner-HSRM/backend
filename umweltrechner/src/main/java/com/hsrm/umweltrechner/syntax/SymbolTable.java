@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.hsrm.umweltrechner.syntax.exception.IllegalWriteException;
-import com.hsrm.umweltrechner.syntax.exception.UnknownSymbolException;
+import com.hsrm.umweltrechner.exceptions.interpreter.IllegalWriteException;
+import com.hsrm.umweltrechner.exceptions.interpreter.UnknownSymbolException;
 
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package com.hsrm.umweltrechner.syntax.exception;
+package com.hsrm.umweltrechner.exceptions.interpreter;
 
 /**
  * Thrown if an operation would have made a value leave the domain of real numbers (no imaginary

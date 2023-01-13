@@ -1,4 +1,4 @@
-package com.hsrm.umweltrechner.syntax.exception;
+package com.hsrm.umweltrechner.exceptions.interpreter;
 
 /**
  * Thrown if an exception has been encountered by the interpreter. As the parent class for all
@@ -6,7 +6,7 @@ package com.hsrm.umweltrechner.syntax.exception;
  * the exception occurred. The error message can be retrieved using the {@link #getMessage()} method
  * inherited from {@link Exception}.
  */
-public abstract class InterpreterException extends Exception {
+public abstract class InterpreterException extends RuntimeException {
   private final int line;
   private final int character;
 

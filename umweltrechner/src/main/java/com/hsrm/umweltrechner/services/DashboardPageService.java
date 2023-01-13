@@ -1,4 +1,4 @@
-package com.hsrm.umweltrechner.services.dashboard;
+package com.hsrm.umweltrechner.services;
 
 import java.time.ZonedDateTime;
 import java.util.List;

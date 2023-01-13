@@ -1,4 +1,4 @@
-package com.hsrm.umweltrechner.syntax.exception;
+package com.hsrm.umweltrechner.exceptions.interpreter;
 
 /**
  * Thrown if a value would have been divided by zero.

@@ -1,4 +1,4 @@
-package com.hsrm.umweltrechner.syntax.exception;
+package com.hsrm.umweltrechner.exceptions.interpreter;
 
 /**
  * Thrown if a given name is not a valid symbol name as specified in the documentation.

@@ -27,4 +27,18 @@
         from formula
         order by created_at
     </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, formula, created_at, created_by, changed_at, changed_by
+        from formula
+        where id = #{id}
+    </select>
+
+    <update id="update" parameterType="com.hsrm.umweltrechner.dao.model.Formula">
+        UPDATE formula
+        SET formula    = #{formula,jdbcType=VARCHAR},
+            changed_at = #{changedAt,jdbcType=TIMESTAMP},
+            changed_by = #{changedBy,jdbcType=VARCHAR}
+        WHERE id = #{id,jdbcType=VARCHAR}
+    </update>
 </mapper>

@@ -11,9 +11,9 @@ import org.springframework.stereotype.Controller;
 
 import com.google.common.base.Preconditions;
 import com.hsrm.umweltrechner.dto.DtoVariableData;
-import com.hsrm.umweltrechner.services.FormulaInterpreterService;
 import com.hsrm.umweltrechner.exceptions.interpreter.InvalidSymbolException;
 import com.hsrm.umweltrechner.exceptions.interpreter.OutOfRangeException;
+import com.hsrm.umweltrechner.services.FormulaInterpreterService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,9 +43,11 @@ public class SensorControllerWS {
         sensorData.getTimestamp());
   }
 
-  @Scheduled(fixedRate = 500)
+  @Scheduled(fixedRateString = "${scheduler.rate}")
   public void scheduledVariables() {
-    formulaInterpreterService.calculateAndGetVariables().forEach((x) -> {
+    formulaInterpreterService.calculateAndGetVariables()
+        .parallelStream()
+        .forEach((x) -> {
       template.convertAndSend("/topic/" + x.getVariableName(), x);
       log.info("Sending variable: " + x);
     });

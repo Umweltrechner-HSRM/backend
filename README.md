@@ -3,6 +3,9 @@
 
 ## Run the project
 ### local
+
+- change .env.dist to .env and fill in the correct values
+
 ```bash
 docker-compose up -d
 ```

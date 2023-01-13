@@ -15,6 +15,7 @@ services:
     networks:
       - umweltrechner
     environment:
+      - MAILGUN_API_KEY=${MAILGUN_API_KEY}
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3312/umweltrechner
 
   mysql:

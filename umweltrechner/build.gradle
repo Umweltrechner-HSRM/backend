@@ -81,6 +81,8 @@ dependencies {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
 
+	implementation 'com.mailgun:mailgun-java:1.0.6'
+
 	testImplementation 'junit:junit:4.13.1'
 
 	test {

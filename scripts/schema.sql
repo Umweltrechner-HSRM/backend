@@ -32,7 +32,7 @@ create table if not exists umweltrechner.sensor
     created_at      timestamp     null
 );
 
-create table if not exists umweltrechner.customeralerts
+create table if not exists umweltrechner.customer_alerts
 (
     id            varchar(36)  not null
         primary key,

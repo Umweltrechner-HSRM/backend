@@ -19,4 +19,6 @@ public interface CustomerAlertsMapper {
   int insert(CustomerAlert customerAlert);
 
   int deleteById(@Param("id") String id);
+
+  CustomerAlert selectById(@Param("id") String id);
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import com.hsrm.umweltrechner.dao.mapper.CustomerAlertsMapper;
 import com.hsrm.umweltrechner.dao.model.CustomerAlert;
 import com.hsrm.umweltrechner.dto.DtoCustomerAlert;
+import com.hsrm.umweltrechner.exceptions.NotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +33,15 @@ public class CustomerAlertsService {
     customerAlert.setPhoneNumber(dtoCustomerAlert.getPhoneNumber());
     customerAlert.setEmail(dtoCustomerAlert.getEmail());
     customerAlert.prepareInsert();
+    customerAlertsMapper.insert(customerAlert);
     return customerAlert;
   }
 
   public CustomerAlert updateCustomerAlert(DtoCustomerAlert dtoCustomerAlert) {
-    CustomerAlert customerAlert = new CustomerAlert();
-    customerAlert.setId(dtoCustomerAlert.getId());
+    CustomerAlert customerAlert = customerAlertsMapper.selectById(dtoCustomerAlert.getId());
+    if (customerAlert == null) {
+      throw new NotFoundException("CustomerAlert with id " + dtoCustomerAlert.getId() + " not found");
+    }
     customerAlert.setVariableName(dtoCustomerAlert.getVariableName());
     customerAlert.setPhoneNumber(dtoCustomerAlert.getPhoneNumber());
     customerAlert.setEmail(dtoCustomerAlert.getEmail());

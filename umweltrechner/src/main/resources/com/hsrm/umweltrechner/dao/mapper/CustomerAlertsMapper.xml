@@ -65,6 +65,18 @@
         FROM customer_alerts
         WHERE variable_name = #{variableName,jdbcType=VARCHAR}
     </select>
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id,
+               variable_name,
+               phone_number,
+               email,
+               created_at,
+               created_by,
+               changed_at,
+               changed_by
+        FROM customer_alerts
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
 
 
 </mapper>

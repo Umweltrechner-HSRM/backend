@@ -3,7 +3,6 @@ package com.hsrm.umweltrechner.dto;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import com.hsrm.umweltrechner.dao.model.Variable;
 import lombok.Data;
 
 @Data
@@ -16,4 +15,6 @@ public class DtoVariable {
   private Double maxThreshold;
 
   private ZonedDateTime lastOverThreshold;
+
+  private List<DtoCustomerAlert> customerAlertList;
 }

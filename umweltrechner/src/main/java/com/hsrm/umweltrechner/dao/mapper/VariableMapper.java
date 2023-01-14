@@ -7,14 +7,14 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.hsrm.umweltrechner.dao.model.Variable;
-import com.hsrm.umweltrechner.dto.DtoVariableWithCustomerAlerts;
+import com.hsrm.umweltrechner.dto.DtoVariable;
 
 @Repository
 public interface VariableMapper {
 
   List<Variable> selectAll();
 
-  List<DtoVariableWithCustomerAlerts> selectAllWithCustomerAlerts();
+  List<DtoVariable> selectAllWithCustomerAlerts();
 
 
   int deleteByName(String name);

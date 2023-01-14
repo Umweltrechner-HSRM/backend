@@ -8,7 +8,7 @@ import com.hsrm.umweltrechner.dao.mapper.VariableMapper;
 import com.hsrm.umweltrechner.dao.model.CustomerAlert;
 import com.hsrm.umweltrechner.dao.model.Variable;
 import com.hsrm.umweltrechner.dto.DtoCustomerAlert;
-import com.hsrm.umweltrechner.dto.DtoVariableWithCustomerAlerts;
+import com.hsrm.umweltrechner.dto.DtoVariable;
 import com.hsrm.umweltrechner.exceptions.NotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class VariableService {
   @Autowired
   private CustomerAlertsMapper customerAlertsMapper;
 
-  public DtoVariableWithCustomerAlerts update(DtoVariableWithCustomerAlerts variable) {
+  public DtoVariable update(DtoVariable variable) {
     Variable v = new Variable();
     v.setName(variable.getName());
     v.setMinThreshold(variable.getMinThreshold());
@@ -55,7 +55,7 @@ public class VariableService {
     }
   }
 
-  public List<DtoVariableWithCustomerAlerts> selectAllWithCustomerAlerts() {
+  public List<DtoVariable> selectAllWithCustomerAlerts() {
     return variablesMapper.selectAllWithCustomerAlerts();
   }
 

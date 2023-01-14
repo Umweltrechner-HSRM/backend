@@ -10,7 +10,7 @@
         <result column="over_treshold" jdbcType="DOUBLE" property="lastOverThreshold"/>
     </resultMap>
 
-    <resultMap id="ExtendedResultMap" type="com.hsrm.umweltrechner.dto.DtoVariableWithCustomerAlerts">
+    <resultMap id="ExtendedResultMap" type="com.hsrm.umweltrechner.dto.DtoVariable">
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="min_threshold" jdbcType="DOUBLE" property="minThreshold"/>
         <result column="max_threshold" jdbcType="DOUBLE" property="maxThreshold"/>

@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.hsrm.umweltrechner.dao.mapper.CustomerAlertsMapper;
-import com.hsrm.umweltrechner.dto.DtoVariableWithCustomerAlerts;
+import com.hsrm.umweltrechner.dto.DtoVariable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +33,7 @@ public class CustomerAlertsService {
 
   @Transactional
   public void processThresholds(HashMap<String, Double> interpreter) {
-    List<DtoVariableWithCustomerAlerts> variableList =
+    List<DtoVariable> variableList =
         variableService.selectAllWithCustomerAlerts();
 
     for (var variable : variableList) {

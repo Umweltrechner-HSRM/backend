@@ -69,9 +69,8 @@ public class FormulaInterpreterService {
   @Transactional
   public void init() {
     sensorMapper.selectAll().forEach(sensor -> {
-      double value = sensor.getValue() != null ? sensor.getValue() : 0;
       try {
-        interpreter.addSensor(sensor.getName(), value);
+        interpreter.addSensor(sensor.getName(), 0.0);
       } catch (OutOfRangeException | InvalidSymbolException e) {
         throw new RuntimeException(e);
       }

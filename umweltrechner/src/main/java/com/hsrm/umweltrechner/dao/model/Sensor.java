@@ -15,8 +15,6 @@ public class Sensor {
 
   private String description;
 
-  private Double value;
-
   private Timestamp createdAt;
 
 }

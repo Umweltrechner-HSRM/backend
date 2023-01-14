@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.base.Preconditions;
+import com.hsrm.umweltrechner.dao.model.Variable;
 import com.hsrm.umweltrechner.dto.DtoVariable;
 import com.hsrm.umweltrechner.services.VariableService;
 
@@ -22,9 +23,14 @@ public class VariableController {
   private VariableService variableService;
 
 
-  @GetMapping(value = "/getAllVariables")
-  public List<DtoVariable> getAllVariables() {
+  @GetMapping(value = "/")
+  public List<DtoVariable> getAllVariablesDto() {
     return variableService.selectAllWithCustomerAlerts();
+  }
+
+  @GetMapping(value = "/getAllVariables")
+  public List<Variable> getAllVariables() {
+    return variableService.selectAll();
   }
 
   @PutMapping(value = "/{name}")

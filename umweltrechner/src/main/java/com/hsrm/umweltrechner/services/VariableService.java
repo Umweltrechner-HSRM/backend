@@ -59,4 +59,10 @@ public class VariableService {
     return variablesMapper.selectAllWithCustomerAlerts();
   }
 
+  public List<Variable> selectAll() {
+    return variablesMapper.selectAll();
+  }
+
+
+
 }

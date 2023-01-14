@@ -23,7 +23,7 @@ public class VariableController {
   private VariableService variableService;
 
 
-  @GetMapping()
+  @GetMapping(value = "/getAllVariables")
   public List<DtoVariableWithCustomerAlerts> getAllVariables() {
     return variableService.selectAllWithCustomerAlerts();
   }
@@ -33,7 +33,7 @@ public class VariableController {
       @RequestBody DtoVariableWithCustomerAlerts variable) {
     Preconditions.checkArgument(name.equals(variable.getName()));
     if (variable.getMinThreshold() != null && variable.getMaxThreshold() != null) {
-      Preconditions.checkArgument(variable.getMinThreshold() < variable.getMaxThreshold());
+      Preconditions.checkArgument(variable.getMinThreshold() <= variable.getMaxThreshold());
     }
     return variableService.update(variable);
   }

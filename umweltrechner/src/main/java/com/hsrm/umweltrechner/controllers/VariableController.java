@@ -23,7 +23,7 @@ public class VariableController {
   private VariableService variableService;
 
 
-  @GetMapping(value = "/")
+  @GetMapping()
   public List<DtoVariable> getAllVariablesDto() {
     return variableService.selectAllWithCustomerAlerts();
   }

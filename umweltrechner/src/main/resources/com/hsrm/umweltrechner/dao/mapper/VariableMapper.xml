@@ -4,27 +4,29 @@
 
     <resultMap id="BaseResultMap" type="com.hsrm.umweltrechner.dao.model.Variable">
         <result column="name" jdbcType="VARCHAR" property="name"/>
-        <result column="minThreshold" jdbcType="DOUBLE" property="minThreshold"/>
-        <result column="maxThreshold" jdbcType="DOUBLE" property="maxThreshold"/>
+        <result column="min_threshold" jdbcType="DOUBLE" property="minThreshold"/>
+        <result column="max_threshold" jdbcType="DOUBLE" property="maxThreshold"/>
     </resultMap>
     <insert id="insert">
-        INSERT INTO variable (name, minThreshold, maxThreshold)
+        INSERT INTO variable (name, min_threshold, max_threshold)
         VALUES (#{name,jdbcType=VARCHAR}, #{minThreshold,jdbcType=DOUBLE}, #{maxThreshold,jdbcType=DOUBLE})
     </insert>
 
     <delete id="deleteByName" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
-        DELETE FROM variable
+        DELETE
+        FROM variable
         WHERE name = #{name,jdbcType=VARCHAR}
     </delete>
 
     <select id="selectAll" resultMap="BaseResultMap">
-        SELECT name, minThreshold, maxThreshold
+        SELECT name, min_threshold, max_threshold
         FROM variable
     </select>
 
     <update id="updateVariable" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
         UPDATE variable
-        SET minThreshold = #{minThreshold,jdbcType=DOUBLE}, maxThreshold = #{maxThreshold,jdbcType=DOUBLE}
+        SET min_threshold = #{minThreshold,jdbcType=DOUBLE},
+            max_threshold = #{maxThreshold,jdbcType=DOUBLE}
         WHERE name = #{name,jdbcType=VARCHAR}
     </update>
 </mapper>

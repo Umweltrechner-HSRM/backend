@@ -8,9 +8,9 @@ import lombok.Data;
 @Data
 public class DtoVariable {
 
-  private List<Variable> variables;
+  private String name;
 
-  private String mail;
+  private Double minThreshold;
 
-  private String mobile;
+  private Double maxThreshold;
 }

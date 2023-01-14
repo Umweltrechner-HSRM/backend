@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.hsrm.umweltrechner.dao.mapper.VariableMapper;
 import com.hsrm.umweltrechner.dao.model.Variable;
+import com.hsrm.umweltrechner.exceptions.NotFoundException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,8 +21,12 @@ public class VariableService {
     this.variablesMapper = variablesMapper;
   }
 
-  public void update(String name, Double minThreshold, Double maxThreshold) {
-    variablesMapper.updateVariable(name, minThreshold, maxThreshold);
+  public Variable update(Variable variable) {
+    int updated = variablesMapper.updateVariable(variable);
+    if (updated == 0) {
+      throw new NotFoundException("Variable not found");
+    }
+    return variable;
   }
 
   public List<Variable> getAllVariables(){

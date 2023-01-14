@@ -8,17 +8,16 @@
         <result column="location" jdbcType="VARCHAR" property="location"/>
         <result column="unit" jdbcType="VARCHAR" property="unit"/>
         <result column="value" jdbcType="DOUBLE" property="value"/>
-        <result column="simulation_code" jdbcType="VARCHAR" property="simulationCode"/>
         <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
     </resultMap>
+
     <insert id="insert" parameterType="com.hsrm.umweltrechner.dao.model.Sensor">
-        INSERT INTO sensor (name, description, location, unit, value, simulation_code, created_at)
+        INSERT INTO sensor (name, description, location, unit, value, created_at)
         VALUES (#{name,jdbcType=VARCHAR},
                 #{description,jdbcType=VARCHAR},
                 #{location,jdbcType=VARCHAR},
                 #{unit,jdbcType=VARCHAR},
                 #{value,jdbcType=DOUBLE},
-                #{simulationCode,jdbcType=VARCHAR},
                 #{createdAt,jdbcType=TIMESTAMP})
     </insert>
 
@@ -29,7 +28,7 @@
     </delete>
 
     <select id="selectAll" resultMap="BaseResultMap">
-        SELECT name, description, location, unit, value, simulation_code, created_at
+        SELECT name, description, location, unit, value, created_at
         FROM sensor
     </select>
 

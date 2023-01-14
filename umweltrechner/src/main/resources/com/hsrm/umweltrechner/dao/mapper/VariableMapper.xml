@@ -55,6 +55,21 @@
                  LEFT JOIN customer_alerts ca ON v.name = ca.variable_name
     </select>
 
+    <select id="selectAllWithCustomerAlertsByName" resultMap="ExtendedResultMap">
+        SELECT v.name,
+               v.min_threshold,
+               v.max_threshold,
+               v.last_over_threshold,
+               ca.id,
+               ca.variable_name,
+               ca.phone_number,
+               ca.email,
+               ca.last_notified
+        FROM variable v
+                 LEFT JOIN customer_alerts ca ON v.name = ca.variable_name
+        WHERE v.name = #{name,jdbcType=VARCHAR}
+    </select>
+
     <update id="updateThresholds" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
         UPDATE variable
         SET min_threshold = #{minThreshold,jdbcType=DOUBLE},

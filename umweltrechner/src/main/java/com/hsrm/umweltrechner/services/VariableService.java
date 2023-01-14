@@ -44,7 +44,7 @@ public class VariableService {
       ca.setPhoneNumber(x.getPhoneNumber());
       customerAlertsMapper.insert(ca);
     }
-    return variable;
+    return variablesMapper.selectAllWithCustomerAlertsByName(variable.getName());
   }
 
   public void updateLastOverThreshold(String variableName, ZonedDateTime time) {

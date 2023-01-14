@@ -16,6 +16,8 @@ public interface VariableMapper {
 
   List<DtoVariable> selectAllWithCustomerAlerts();
 
+  DtoVariable selectAllWithCustomerAlertsByName(@Param("name") String name);
+
 
   int deleteByName(String name);
 

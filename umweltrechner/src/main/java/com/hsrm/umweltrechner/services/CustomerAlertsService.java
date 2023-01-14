@@ -30,6 +30,13 @@ public class CustomerAlertsService {
 
   private final static int ALERT_FREQUENCY = 15; // in minutes
 
+  private final static String ALERT_MESSAGE = """
+      WARNING:
+      The data point %s is over the threshold!
+      Measured value %s was reached at %s.
+      Allowed range: %s - %s.
+      Please check the sensor immediately.
+      """;
 
   @Transactional
   public void processThresholds(HashMap<String, Double> interpreter) {
@@ -58,7 +65,9 @@ public class CustomerAlertsService {
           .toList();
       if (!emails.isEmpty()) {
         log.info("Sending email to " + emails);
-        mailService.sendWarningMails(emails, variable.getName());
+        String message = String.format(ALERT_MESSAGE, variable.getName(), interpreter.get(variable.getName()),
+            variable.getLastOverThreshold(), variable.getMinThreshold(), variable.getMaxThreshold());
+        mailService.sendWarningMails(emails, message);
       }
     }
 

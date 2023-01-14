@@ -39,7 +39,7 @@ public class SensorService {
     sensorMapper.deleteByName(sensor.getName());
     sensorMapper.insert(sensor);
     formulaInterpreterService.registerSensor(sensor.getName(), sensor.getValue() == null ?
-        0xBabeCafe : sensor.getValue());
+        0 : sensor.getValue());
     variableMapper.insert(
         Variable.builder().name(sensor.getName()).maxThreshold(null).minThreshold(null).build());
     return sensor;

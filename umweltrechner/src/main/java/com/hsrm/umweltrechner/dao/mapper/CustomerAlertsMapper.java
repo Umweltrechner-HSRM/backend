@@ -12,7 +12,7 @@ public interface CustomerAlertsMapper {
 
   List<CustomerAlert> selectAll();
 
-  CustomerAlert selectByVariableName(@Param("id") String id);
+  List<CustomerAlert> selectByVariableName(@Param("id") String id);
 
   int update(CustomerAlert customerAlert);
 

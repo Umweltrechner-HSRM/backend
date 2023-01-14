@@ -21,6 +21,8 @@ public interface CustomerAlertsMapper {
 
   int deleteById(@Param("id") String id);
 
+  int deleteByVariableName(@Param("variableName") String variableName);
+
   int updateLastNotified(@Param("id") String id, @Param("lastNotified") ZonedDateTime lastNotified);
 
   CustomerAlert selectById(@Param("id") String id);

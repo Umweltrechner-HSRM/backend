@@ -8,7 +8,7 @@ import com.hsrm.umweltrechner.dao.model.general.HasModificationInfo;
 import lombok.Data;
 
 @Data
-public class CustomerAlert implements HasId, HasModificationInfo {
+public class CustomerAlert implements HasId {
 
   private String id;
 
@@ -19,13 +19,5 @@ public class CustomerAlert implements HasId, HasModificationInfo {
   private String email;
 
   private ZonedDateTime lastNotified;
-
-  private ZonedDateTime createdAt;
-
-  private String createdBy;
-
-  private ZonedDateTime changedAt;
-
-  private String changedBy;
 
 }

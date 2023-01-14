@@ -1,5 +1,6 @@
 package com.hsrm.umweltrechner.dto;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import com.hsrm.umweltrechner.dao.model.Variable;
@@ -13,4 +14,6 @@ public class DtoVariable {
   private Double minThreshold;
 
   private Double maxThreshold;
+
+  private ZonedDateTime lastOverThreshold;
 }

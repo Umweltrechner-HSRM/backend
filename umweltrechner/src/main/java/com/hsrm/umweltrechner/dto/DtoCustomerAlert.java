@@ -1,6 +1,8 @@
 package com.hsrm.umweltrechner.dto;
 
 
+import java.time.ZonedDateTime;
+
 import lombok.Data;
 
 @Data
@@ -13,5 +15,7 @@ public class DtoCustomerAlert {
   private String phoneNumber;
 
   private String email;
+
+  private ZonedDateTime lastNotified;
 
 }

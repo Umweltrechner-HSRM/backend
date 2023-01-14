@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.base.Preconditions;
 import com.hsrm.umweltrechner.dao.model.Variable;
+import com.hsrm.umweltrechner.dto.DtoVariableWithCustomerAlerts;
 import com.hsrm.umweltrechner.services.VariableService;
 
 @RestController
@@ -23,14 +24,17 @@ public class VariableController {
 
 
   @GetMapping()
-  public List<Variable> getAllVariables() {
-    return variableService.getAllVariables();
+  public List<DtoVariableWithCustomerAlerts> getAllVariables() {
+    return variableService.selectAllWithCustomerAlerts();
   }
 
   @PutMapping(value = "/{name}")
-  public Variable updateThresholds(@PathVariable("name") String name,
-      @RequestBody Variable variable) {
+  public DtoVariableWithCustomerAlerts update(@PathVariable("name") String name,
+      @RequestBody DtoVariableWithCustomerAlerts variable) {
     Preconditions.checkArgument(name.equals(variable.getName()));
+    if (variable.getMinThreshold() != null && variable.getMaxThreshold() != null) {
+      Preconditions.checkArgument(variable.getMinThreshold() < variable.getMaxThreshold());
+    }
     return variableService.update(variable);
   }
 

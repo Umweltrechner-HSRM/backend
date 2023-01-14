@@ -129,16 +129,14 @@ public class FormulaInterpreterService {
     // only return variables/got a new timestamp that have changed from last computation
     HashMap<String, SymbolTable.SymbolEntry> xs = interpreter.getVariablesWithFlag();
     List<DtoVariableData> result = new LinkedList<>();
-    for (var x : xs.entrySet()) {
-      String key = x.getKey();
-      SymbolTable.SymbolEntry value = x.getValue();
+    xs.forEach((key, value) -> {
       long lastModified = value.getLastModified();
       SymbolTable.SymbolEntry lastUpdate = lastUpdates.get(key);
       if (lastUpdate == null || lastUpdate.getLastModified() != lastModified) {
         lastUpdates.put(key, value);
         result.add(new DtoVariableData(key, value.getValue(), lastModified));
       }
-    }
+    });
     return result;
   }
 

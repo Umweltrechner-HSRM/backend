@@ -22,7 +22,7 @@ public class VariableController {
   private VariableService variableService;
 
 
-  @GetMapping(value = "/getAllVariables")
+  @GetMapping()
   public List<Variable> getAllVariables() {
     return variableService.getAllVariables();
   }

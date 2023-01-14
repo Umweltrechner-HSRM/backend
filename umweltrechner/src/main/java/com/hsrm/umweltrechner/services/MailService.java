@@ -1,5 +1,7 @@
 package com.hsrm.umweltrechner.services;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +19,7 @@ public class MailService {
   private final static String DOMAIN = "mail.sensorguard.systems";
 
 
-  public void sendWarningMail(String to, String msg) {
+  public void sendWarningMails(List<String> to, String msg) {
     try {
       Message message = Message.builder()
           .from(FROM)

@@ -1,5 +1,6 @@
 package com.hsrm.umweltrechner.services;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import com.hsrm.umweltrechner.dao.mapper.VariableMapper;
@@ -22,12 +23,21 @@ public class VariableService {
   }
 
   public Variable update(Variable variable) {
-    int updated = variablesMapper.updateVariable(variable);
+    int updated = variablesMapper.updateThresholds(variable);
     if (updated == 0) {
       throw new NotFoundException("Variable not found");
     }
     return variable;
   }
+
+  public void updateLastOverThreshold(String variableName, ZonedDateTime time) {
+    int updated = variablesMapper.updateLastOverThreshold(variableName, time);
+    if (updated == 0) {
+      throw new NotFoundException("Last over threshold not updated, variable not found with name " +
+          variableName);
+    }
+  }
+
 
   public List<Variable> getAllVariables(){
     return variablesMapper.selectAll();

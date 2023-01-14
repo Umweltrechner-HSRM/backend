@@ -1,5 +1,6 @@
 package com.hsrm.umweltrechner.dao.mapper;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
@@ -11,10 +12,15 @@ import com.hsrm.umweltrechner.dao.model.Variable;
 public interface VariableMapper {
 
   List<Variable> selectAll();
+
   int deleteByName(String name);
 
   int insert(Variable variable);
 
-  int updateVariable(Variable variable);
+  int updateThresholds(Variable variable);
+
+  int updateLastOverThreshold(@Param("name") String name,
+      @Param("lastOverThreshold") ZonedDateTime lastOverThreshold);
+
 
 }

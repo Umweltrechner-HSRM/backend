@@ -122,7 +122,7 @@ public class FormulaInterpreterService {
     }
     try {
       interpreter.calculate();
-      customerAlertsService.checkThresholds(interpreter.getVariables());
+      customerAlertsService.processThresholds(interpreter.getVariables());
     } catch (Exception e) {
       log.error("Error while calculating formula", e);
     }

@@ -18,6 +18,8 @@ public class CustomerAlert implements HasId, HasModificationInfo {
 
   private String email;
 
+  private ZonedDateTime lastNotified;
+
   private ZonedDateTime createdAt;
 
   private String createdBy;

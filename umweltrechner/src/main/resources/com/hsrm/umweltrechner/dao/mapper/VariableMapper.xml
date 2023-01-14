@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hsrm.umweltrechner.dao.mapper.VariableMapper">
+    <cache readOnly="true"/>
 
     <resultMap id="BaseResultMap" type="com.hsrm.umweltrechner.dao.model.Variable">
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="min_threshold" jdbcType="DOUBLE" property="minThreshold"/>
         <result column="max_threshold" jdbcType="DOUBLE" property="maxThreshold"/>
+        <result column="over_treshold" jdbcType="DOUBLE" property="lastOverThreshold"/>
     </resultMap>
+
+
     <insert id="insert">
         INSERT INTO variable (name, min_threshold, max_threshold)
         VALUES (#{name,jdbcType=VARCHAR}, #{minThreshold,jdbcType=DOUBLE}, #{maxThreshold,jdbcType=DOUBLE})
@@ -19,14 +23,20 @@
     </delete>
 
     <select id="selectAll" resultMap="BaseResultMap">
-        SELECT name, min_threshold, max_threshold
+        SELECT name, min_threshold, max_threshold, last_over_threshold
         FROM variable
     </select>
 
-    <update id="updateVariable" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
+    <update id="updateThresholds" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
         UPDATE variable
         SET min_threshold = #{minThreshold,jdbcType=DOUBLE},
             max_threshold = #{maxThreshold,jdbcType=DOUBLE}
+        WHERE name = #{name,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateLastOverThreshold">
+        UPDATE variable
+        SET last_over_threshold = #{lastOverThreshold,jdbcType=DOUBLE}
         WHERE name = #{name,jdbcType=VARCHAR}
     </update>
 </mapper>

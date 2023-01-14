@@ -41,10 +41,6 @@ create table if not exists umweltrechner.customer_alerts
     phone_number  varchar(50)  null,
     email         varchar(255) null,
     last_notified timestamp    null,
-    created_at    timestamp    null,
-    created_by    varchar(36)  not null,
-    changed_at    timestamp    null,
-    changed_by    varchar(36)  not null,
     constraint customer_alerts_variable_name_fk
         foreign key (variable_name) references variable (name)
             on delete cascade

@@ -18,7 +18,8 @@ create table if not exists umweltrechner.variable
     name          varchar(255) not null
         primary key,
     min_threshold double       null,
-    max_threshold double       null
+    max_threshold double       null,
+    last_over_threshold timestamp(3) null
 );
 
 create table if not exists umweltrechner.sensor
@@ -39,6 +40,7 @@ create table if not exists umweltrechner.customer_alerts
     variable_name varchar(100) not null,
     phone_number  varchar(50)  null,
     email         varchar(255) null,
+    last_notified timestamp    null,
     created_at    timestamp    null,
     created_by    varchar(36)  not null,
     changed_at    timestamp    null,

@@ -39,13 +39,13 @@ public class FormulaInterpreterService {
   @Qualifier("FormelInterpreter")
   private final Interpreter interpreter;
 
-  private final VariableService variableService;
-
   private final SensorMapper sensorMapper;
 
   private final FormulaMapper formulaMapper;
 
   private final VariableMapper variablesMapper;
+
+  private final CustomerAlertsService customerAlertsService;
 
   private final ConcurrentHashMap<String, SymbolTable.SymbolEntry> lastUpdates =
       new ConcurrentHashMap<>();
@@ -54,23 +54,23 @@ public class FormulaInterpreterService {
   @Autowired
   public FormulaInterpreterService(
       Interpreter formulaInterpreter,
-      VariableService variableService, SensorMapper sensorMapper,
+      SensorMapper sensorMapper,
       FormulaMapper formulaMapper,
-      VariableMapper variablesMapper) {
+      VariableMapper variablesMapper,
+      CustomerAlertsService customerAlertsService) {
     this.interpreter = formulaInterpreter;
-    this.variableService = variableService;
     this.sensorMapper = sensorMapper;
     this.formulaMapper = formulaMapper;
     this.variablesMapper = variablesMapper;
+    this.customerAlertsService = customerAlertsService;
   }
 
   @PostConstruct
   @Transactional
   public void init() {
     sensorMapper.selectAll().forEach(sensor -> {
-      double value = sensor.getValue() != null ? sensor.getValue() : 0xBabeCafe;
       try {
-        interpreter.addSensor(sensor.getName(), value);
+        interpreter.addSensor(sensor.getName(), 0.0);
       } catch (OutOfRangeException | InvalidSymbolException e) {
         throw new RuntimeException(e);
       }
@@ -85,7 +85,7 @@ public class FormulaInterpreterService {
       log.error("Error while parsing formula " + e);
     }
 
-    List<String> variables = getVariableNames();
+    List<String> variables = interpreter.getVariables().keySet().stream().toList();
     List<Variable> variablesFromTable = variablesMapper.selectAll();
     List<String> nameOfVariablesInTable = new ArrayList<>();
 
@@ -121,22 +121,7 @@ public class FormulaInterpreterService {
     }
     try {
       interpreter.calculate();
-      List<Variable> variableList = variableService.getAllVariables();
-      // compare thresholds from variable table with calculated values
-      // and send signal
-      for (var variable : variableList) {
-        boolean isDanger = false;
-        if (variable.getMinThreshold() != null && interpreter.getVariables().get(variable.getName()) <= variable.getMinThreshold()) {
-          isDanger = true;
-        }
-        if (variable.getMaxThreshold() != null && interpreter.getVariables().get(variable.getName()) >= variable.getMaxThreshold()) {
-          isDanger = true;
-        }
-        if (isDanger) {
-          log.warn("Variable " + variable.getName() + " is in danger!");
-        }
-      }
-
+      customerAlertsService.processThresholds(interpreter.getVariables());
     } catch (Exception e) {
       log.error("Error while calculating formula", e);
     }
@@ -144,22 +129,17 @@ public class FormulaInterpreterService {
     // only return variables/got a new timestamp that have changed from last computation
     HashMap<String, SymbolTable.SymbolEntry> xs = interpreter.getVariablesWithFlag();
     List<DtoVariableData> result = new LinkedList<>();
-    for (var x : xs.entrySet()) {
-      String key = x.getKey();
-      SymbolTable.SymbolEntry value = x.getValue();
+    xs.forEach((key, value) -> {
       long lastModified = value.getLastModified();
       SymbolTable.SymbolEntry lastUpdate = lastUpdates.get(key);
       if (lastUpdate == null || lastUpdate.getLastModified() != lastModified) {
         lastUpdates.put(key, value);
         result.add(new DtoVariableData(key, value.getValue(), lastModified));
       }
-    }
+    });
     return result;
   }
 
-  public List<String> getVariableNames() {
-    return interpreter.getVariables().keySet().stream().toList();
-  }
 
 
   public void checkSyntax(String formula) throws DivideByZeroException, DomainException,

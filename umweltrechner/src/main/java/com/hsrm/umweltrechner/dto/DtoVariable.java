@@ -1,5 +1,6 @@
 package com.hsrm.umweltrechner.dto;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import com.hsrm.umweltrechner.dao.model.Variable;
@@ -8,9 +9,11 @@ import lombok.Data;
 @Data
 public class DtoVariable {
 
-  private List<Variable> variables;
+  private String name;
 
-  private String mail;
+  private Double minThreshold;
 
-  private String mobile;
+  private Double maxThreshold;
+
+  private ZonedDateTime lastOverThreshold;
 }

@@ -15,10 +15,6 @@ public class Sensor {
 
   private String description;
 
-  private Double value;
-
-  private String simulationCode;
-
   private Timestamp createdAt;
 
 }

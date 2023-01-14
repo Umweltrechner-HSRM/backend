@@ -15,9 +15,11 @@ create table if not exists umweltrechner.formula
 
 create table if not exists umweltrechner.variable
 (
-    name         varchar(255) not null primary key,
-    minThreshold double       null,
-    maxThreshold double       null
+    name          varchar(255) not null
+        primary key,
+    min_threshold double       null,
+    max_threshold double       null,
+    last_over_threshold timestamp(3) null
 );
 
 create table if not exists umweltrechner.sensor
@@ -28,18 +30,21 @@ create table if not exists umweltrechner.sensor
     description     varchar(500)  null,
     value           double        null,
     unit            varchar(36)   null,
-    simulation_code varchar(1000) null,
     created_at      timestamp     null
 );
 
-create table if not exists umweltrechner.customeralerts
+create table if not exists umweltrechner.customer_alerts
 (
+    id            varchar(36)  not null
+        primary key,
+    variable_name varchar(100) not null,
     phone_number  varchar(50)  null,
     email         varchar(255) null,
-    variable_name varchar(100) not null primary key,
-    foreign key (variable_name) references variable (name)
+    last_notified timestamp    null,
+    constraint customer_alerts_variable_name_fk
+        foreign key (variable_name) references variable (name)
+            on delete cascade
 );
-
 
 create table if not exists umweltrechner.dashboard
 (

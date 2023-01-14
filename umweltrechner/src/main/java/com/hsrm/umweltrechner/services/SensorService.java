@@ -38,8 +38,7 @@ public class SensorService {
       InvalidSymbolException {
     sensorMapper.deleteByName(sensor.getName());
     sensorMapper.insert(sensor);
-    formulaInterpreterService.registerSensor(sensor.getName(), sensor.getValue() == null ?
-        0xBabeCafe : sensor.getValue());
+    formulaInterpreterService.registerSensor(sensor.getName(), 0.0);
     variableMapper.insert(
         Variable.builder().name(sensor.getName()).maxThreshold(null).minThreshold(null).build());
     return sensor;

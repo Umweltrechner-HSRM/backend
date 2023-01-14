@@ -1,30 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hsrm.umweltrechner.dao.mapper.VariableMapper">
+    <cache readOnly="true"/>
 
     <resultMap id="BaseResultMap" type="com.hsrm.umweltrechner.dao.model.Variable">
         <result column="name" jdbcType="VARCHAR" property="name"/>
-        <result column="minThreshold" jdbcType="DOUBLE" property="minThreshold"/>
-        <result column="maxThreshold" jdbcType="DOUBLE" property="maxThreshold"/>
+        <result column="min_threshold" jdbcType="DOUBLE" property="minThreshold"/>
+        <result column="max_threshold" jdbcType="DOUBLE" property="maxThreshold"/>
+        <result column="over_treshold" jdbcType="DOUBLE" property="lastOverThreshold"/>
     </resultMap>
+
+    <resultMap id="ExtendedResultMap" type="com.hsrm.umweltrechner.dto.DtoVariableWithCustomerAlerts">
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="min_threshold" jdbcType="DOUBLE" property="minThreshold"/>
+        <result column="max_threshold" jdbcType="DOUBLE" property="maxThreshold"/>
+        <result column="over_treshold" jdbcType="DOUBLE" property="lastOverThreshold"/>
+        <collection property="customerAlertList" ofType="com.hsrm.umweltrechner.dto.DtoCustomerAlert">
+            <result column="id" jdbcType="INTEGER" property="id"/>
+            <result column="variable_name" jdbcType="VARCHAR" property="variableName"/>
+            <result column="phone_number" jdbcType="VARCHAR" property="phoneNumber"/>
+            <result column="email" jdbcType="VARCHAR" property="email"/>
+            <result column="last_notified" jdbcType="TIMESTAMP" property="lastNotified"/>
+        </collection>
+    </resultMap>
+
+
     <insert id="insert">
-        INSERT INTO variable (name, minThreshold, maxThreshold)
+        INSERT INTO variable (name, min_threshold, max_threshold)
         VALUES (#{name,jdbcType=VARCHAR}, #{minThreshold,jdbcType=DOUBLE}, #{maxThreshold,jdbcType=DOUBLE})
     </insert>
 
     <delete id="deleteByName" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
-        DELETE FROM variable
+        DELETE
+        FROM variable
         WHERE name = #{name,jdbcType=VARCHAR}
     </delete>
 
     <select id="selectAll" resultMap="BaseResultMap">
-        SELECT name, minThreshold, maxThreshold
+        SELECT name, min_threshold, max_threshold, last_over_threshold
         FROM variable
     </select>
 
-    <update id="updateVariable" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
+    <select id="selectAllWithCustomerAlerts" resultMap="ExtendedResultMap">
+        SELECT v.name,
+               v.min_threshold,
+               v.max_threshold,
+               v.last_over_threshold,
+               ca.id,
+               ca.variable_name,
+               ca.phone_number,
+               ca.email,
+               ca.last_notified
+        FROM variable v
+                 LEFT JOIN customer_alerts ca ON v.name = ca.variable_name
+    </select>
+
+    <update id="updateThresholds" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
         UPDATE variable
-        SET minThreshold = #{minThreshold,jdbcType=DOUBLE}, maxThreshold = #{maxThreshold,jdbcType=DOUBLE}
+        SET min_threshold = #{minThreshold,jdbcType=DOUBLE},
+            max_threshold = #{maxThreshold,jdbcType=DOUBLE}
+        WHERE name = #{name,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateLastOverThreshold">
+        UPDATE variable
+        SET last_over_threshold = #{lastOverThreshold,jdbcType=DOUBLE}
         WHERE name = #{name,jdbcType=VARCHAR}
     </update>
 </mapper>

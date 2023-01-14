@@ -81,12 +81,12 @@ public class CustomerAlertsService {
           .stream()
           .filter(x -> x.getLastNotified() == null || x.getLastNotified().isBefore(ZonedDateTime
               .now().minusMinutes(ALERT_FREQUENCY)))
+          .filter(x -> StringUtils.hasText(x.getEmail()))
           .map(x -> {
             x.setLastNotified(ZonedDateTime.now());
             customerAlertsMapper.updateLastNotified(x.getId(), x.getLastNotified());
             return x.getEmail();
           })
-          .filter(StringUtils::hasText)
           .toList();
       if (!emails.isEmpty()) {
         mailService.sendWarningMails(emails, variable.getName());

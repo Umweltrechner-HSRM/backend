@@ -64,7 +64,7 @@ create table if not exists umweltrechner.dashboard_component
     type           varchar(32)  not null,
     variable       varchar(255) not null,
     variable_color varchar(16)  null,
-    stroke         varchar(16)  null,
+    stroke         varchar(16)  not null,
     created_at     timestamp    null,
     created_by     varchar(100) null,
     changed_at     timestamp    null,

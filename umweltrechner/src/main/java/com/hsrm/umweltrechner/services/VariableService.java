@@ -38,7 +38,7 @@ public class VariableService {
       throw new NotFoundException("Variable not found");
     }
     customerAlertsMapper.deleteByVariableName(variable.getName());
-    for (String mail : variable.getCustomerEmailList()) {
+    for (String mail : variable.getEmailList()) {
       if (!StringUtils.hasText(mail)) {
         continue;
       }

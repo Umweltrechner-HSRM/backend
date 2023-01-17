@@ -14,5 +14,5 @@ public class DtoVariableUpdate {
 
   private Double maxThreshold;
 
-  private List<String> customerEmailList;
+  private List<String> emailList;
 }

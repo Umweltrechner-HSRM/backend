@@ -7,14 +7,14 @@
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="min_threshold" jdbcType="DOUBLE" property="minThreshold"/>
         <result column="max_threshold" jdbcType="DOUBLE" property="maxThreshold"/>
-        <result column="over_treshold" jdbcType="DOUBLE" property="lastOverThreshold"/>
+        <result column="last_over_threshold" jdbcType="DOUBLE" property="lastOverThreshold"/>
     </resultMap>
 
     <resultMap id="ExtendedResultMap" type="com.hsrm.umweltrechner.dto.DtoVariable">
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="min_threshold" jdbcType="DOUBLE" property="minThreshold"/>
         <result column="max_threshold" jdbcType="DOUBLE" property="maxThreshold"/>
-        <result column="over_treshold" jdbcType="DOUBLE" property="lastOverThreshold"/>
+        <result column="last_over_threshold" jdbcType="DOUBLE" property="lastOverThreshold"/>
         <collection property="customerAlertList" ofType="com.hsrm.umweltrechner.dto.DtoCustomerAlert">
             <result column="id" jdbcType="INTEGER" property="id"/>
             <result column="variable_name" jdbcType="VARCHAR" property="variableName"/>

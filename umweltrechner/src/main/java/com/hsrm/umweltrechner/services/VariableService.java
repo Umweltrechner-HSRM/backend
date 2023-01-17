@@ -45,7 +45,7 @@ public class VariableService {
       CustomerAlert ca = new CustomerAlert();
       ca.generateId();
       ca.setVariableName(variable.getName());
-      ca.setEmail(mail);
+      ca.setEmail(mail.trim());
       customerAlertsMapper.insert(ca);
     }
     return variablesMapper.selectAllWithCustomerAlertsByName(variable.getName());

@@ -9,11 +9,13 @@ import com.hsrm.umweltrechner.dao.model.CustomerAlert;
 import com.hsrm.umweltrechner.dao.model.Variable;
 import com.hsrm.umweltrechner.dto.DtoCustomerAlert;
 import com.hsrm.umweltrechner.dto.DtoVariable;
+import com.hsrm.umweltrechner.dto.DtoVariableUpdate;
 import com.hsrm.umweltrechner.exceptions.NotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -25,7 +27,7 @@ public class VariableService {
   @Autowired
   private CustomerAlertsMapper customerAlertsMapper;
 
-  public DtoVariable update(DtoVariable variable) {
+  public DtoVariable update(DtoVariableUpdate variable) {
     Variable v = new Variable();
     v.setName(variable.getName());
     v.setMinThreshold(variable.getMinThreshold());
@@ -36,23 +38,21 @@ public class VariableService {
       throw new NotFoundException("Variable not found");
     }
     customerAlertsMapper.deleteByVariableName(variable.getName());
-    for (DtoCustomerAlert x : variable.getCustomerAlertList()) {
+    for (String mail : variable.getCustomerEmailList()) {
+      if (!StringUtils.hasText(mail)) {
+        continue;
+      }
       CustomerAlert ca = new CustomerAlert();
       ca.generateId();
       ca.setVariableName(variable.getName());
-      ca.setEmail(x.getEmail());
-      ca.setPhoneNumber(x.getPhoneNumber());
+      ca.setEmail(mail);
       customerAlertsMapper.insert(ca);
     }
     return variablesMapper.selectAllWithCustomerAlertsByName(variable.getName());
   }
 
   public void updateLastOverThreshold(String variableName, ZonedDateTime time) {
-    int updated = variablesMapper.updateLastOverThreshold(variableName, time);
-    if (updated == 0) {
-      throw new NotFoundException("Last over threshold not updated, variable not found with name " +
-          variableName);
-    }
+    variablesMapper.updateLastOverThreshold(variableName, time);
   }
 
   public List<DtoVariable> selectAllWithCustomerAlerts() {

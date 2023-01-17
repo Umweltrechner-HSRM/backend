@@ -3,19 +3,19 @@ package com.hsrm.umweltrechner.services;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 import com.hsrm.umweltrechner.dao.mapper.CustomerAlertsMapper;
 import com.hsrm.umweltrechner.dao.mapper.VariableMapper;
 import com.hsrm.umweltrechner.dao.model.CustomerAlert;
 import com.hsrm.umweltrechner.dao.model.Variable;
-import com.hsrm.umweltrechner.dto.DtoCustomerAlert;
 import com.hsrm.umweltrechner.dto.DtoVariable;
 import com.hsrm.umweltrechner.dto.DtoVariableUpdate;
 import com.hsrm.umweltrechner.exceptions.NotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service

@@ -25,7 +25,7 @@
     <select id="selectAll" resultMap="BaseResultMap">
         SELECT id, formula, created_at, created_by, changed_at, changed_by
         from formula
-        order by changed_at desc
+        order by created_at
     </select>
 
     <select id="selectById" resultMap="BaseResultMap">

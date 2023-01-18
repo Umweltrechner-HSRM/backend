@@ -62,14 +62,17 @@ create table if not exists umweltrechner.dashboard_component
         primary key,
     name           varchar(100) not null,
     type           varchar(32)  not null,
-    variable       varchar(255) not null,
+    variable       varchar(255) null,
     variable_color varchar(16)  null,
-    stroke         varchar(16)  not null,
+    stroke         varchar(16)  null,
     created_at     timestamp    null,
     created_by     varchar(100) null,
     changed_at     timestamp    null,
-    changed_by     varchar(100) null
-);
+    changed_by     varchar(100) null,
+    constraint dashboard_component_variable_name_fk
+        foreign key (variable) references variable (name)
+            on update cascade on delete set null
+)
 
 create table if not exists umweltrechner.dashboard_page
 (

@@ -72,7 +72,7 @@ create table if not exists umweltrechner.dashboard_component
     constraint dashboard_component_variable_name_fk
         foreign key (variable) references variable (name)
             on update cascade on delete set null
-)
+);
 
 create table if not exists umweltrechner.dashboard_page
 (

@@ -68,6 +68,8 @@ public class FormulaInterpreterService {
   @PostConstruct
   @Transactional
   public void init() {
+    interpreter.clearVariables();
+    interpreter.clearSymbolTable();
     sensorMapper.selectAll().forEach(sensor -> {
       try {
         interpreter.addSensor(sensor.getName(), 0.0);

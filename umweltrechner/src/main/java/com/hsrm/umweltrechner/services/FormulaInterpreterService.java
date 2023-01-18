@@ -78,13 +78,19 @@ public class FormulaInterpreterService {
       }
     });
     List<Formula> formulas = formulaMapper.selectAll();
-    String eqs = formulas.stream().map(Formula::getFormula).collect(Collectors.joining("\n"));
-    try {
-      interpreter.checkSyntax(eqs);
-      interpreter.setEquations(eqs);
-      interpreter.calculate();
-    } catch (Exception e) {
-      log.error("Error while parsing formula " + e);
+
+
+    for(int i = 0; i < formulas.size(); i++) {
+      String slice =
+          formulas.stream().limit(i+1).map(Formula::getFormula).collect(Collectors.joining("\n"));
+      try {
+        interpreter.checkSyntax(slice);
+        interpreter.setEquations(slice);
+        interpreter.calculate();
+      } catch (Exception e) {
+        formulaMapper.delete(formulas.get(i).getId());
+        log.error("Formula {} is invalid and will be deleted", formulas.get(i).getId());
+      }
     }
 
     List<String> variables = interpreter.getVariables().keySet().stream().toList();

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,6 +53,13 @@ public class FormulaController {
       @RequestBody DtoFormula formula) throws DivideByZeroException, DomainException, UnknownSymbolException, IllegalWriteException, IncorrectSyntaxException, OutOfRangeException {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(formula.getFormula()));
     return formulaService.updateFormula(id, formula);
+  }
+
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('admin')")
+  public ResponseEntity<String> deleteFormula(@PathVariable("id") String id) {
+    formulaService.deleteFormula(id);
+    return ResponseEntity.ok().build();
   }
 
   @GetMapping

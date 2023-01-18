@@ -67,7 +67,7 @@ public class FormulaInterpreterService {
 
   @PostConstruct
   @Transactional
-  public void init() {
+  public void syncFormulaSystem() {
     interpreter.clearVariables();
     interpreter.clearSymbolTable();
     sensorMapper.selectAll().forEach(sensor -> {

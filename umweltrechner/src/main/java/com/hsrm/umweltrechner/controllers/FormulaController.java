@@ -33,7 +33,6 @@ public class FormulaController {
   private FormulaService formulaService;
 
   @PostMapping("/validate")
-  @PreAuthorize("hasRole('admin')")
   public ResponseEntity<String> validateFormula(@RequestBody DtoFormula formula) throws DivideByZeroException, DomainException, UnknownSymbolException, IllegalWriteException, IncorrectSyntaxException, OutOfRangeException {
     formulaService.validateFormula(formula.getFormula());
     return ResponseEntity.ok().build();
@@ -43,6 +42,7 @@ public class FormulaController {
   @PreAuthorize("hasRole('admin')")
   public Formula addFormula(@RequestBody DtoFormula formula) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(formula.getFormula()));
+    formulaService.validateFormula(formula.getFormula());
     return formulaService.addFormula(formula);
   }
 

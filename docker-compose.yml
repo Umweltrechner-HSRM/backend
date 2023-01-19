@@ -59,10 +59,10 @@ services:
       DB_VENDOR: MYSQL
       DB_ADDR: keycloak-mysql
       DB_DATABASE: keycloak
-      DB_USER: keycloak
-      DB_PASSWORD: password
-      KEYCLOAK_USER: develop
-      KEYCLOAK_PASSWORD: develop
+      DB_USER: ${KEYCLOAK_DB_USER}
+      DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KEYCLOAK_USER: ${KEYCLOAK_USER}
+      KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
     ports:
       - "8080:8080"
     volumes:

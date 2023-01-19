@@ -1,5 +1,7 @@
 package com.hsrm.umweltrechner.controllers;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +27,12 @@ public class SensorController {
   SensorService sensorService;
 
 
-  @GetMapping
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public List<Sensor> getSensorNames(){
     return sensorService.getAllSensors();
   }
 
-  @PutMapping
+  @PutMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('admin')")
   public Sensor addSensor(@RequestBody Sensor sensor) throws OutOfRangeException, InvalidSymbolException {
     Preconditions.checkArgument(StringUtils.hasText(sensor.getName()));

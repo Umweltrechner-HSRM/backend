@@ -1,5 +1,7 @@
 package com.hsrm.umweltrechner.controllers;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,17 +27,17 @@ public class VariableController {
   private VariableService variableService;
 
 
-  @GetMapping()
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
   public List<DtoVariable> getAllVariablesDto() {
     return variableService.selectAllWithCustomerAlerts();
   }
 
-  @GetMapping(value = "/getAllVariables")
+  @GetMapping(value = "/getAllVariables", produces = APPLICATION_JSON_VALUE)
   public List<Variable> getAllVariables() {
     return variableService.selectAll();
   }
 
-  @PutMapping(value = "/{name}")
+  @PutMapping(value = "/{name}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('admin')")
   public DtoVariable update(@PathVariable("name") String name,
       @RequestBody DtoVariableUpdate variable) {

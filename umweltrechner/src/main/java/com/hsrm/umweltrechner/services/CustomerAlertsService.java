@@ -1,6 +1,7 @@
 package com.hsrm.umweltrechner.services;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -28,7 +29,10 @@ public class CustomerAlertsService {
   @Autowired
   private VariableService variableService;
 
-  private final static int ALERT_FREQUENCY = 15; // in minutes
+
+  @Autowired
+  private MetaSettingsService metaSettingsService;
+
 
   private final static String ALERT_MESSAGE = """
       WARNING:
@@ -46,27 +50,42 @@ public class CustomerAlertsService {
     for (var variable : variableList) {
       boolean isDanger = isOverThreshold(interpreter.get(variable.getName()),
           variable.getMinThreshold(), variable.getMaxThreshold());
+
+
       if (!isDanger) {
         continue;
       }
+
+      List<String> emails = new ArrayList<>();
+
+      if (variable.getLastOverThreshold() == null || variable.getLastOverThreshold().isBefore(ZonedDateTime.now().minusMinutes(metaSettingsService.getMailFrequency()))) {
+        String defaultMail = metaSettingsService.getDefaultMail();
+        if (StringUtils.hasText(defaultMail)) {
+          emails.add(defaultMail);
+        }
+      }
+
       variable.setLastOverThreshold(ZonedDateTime.now());
       variableService.updateLastOverThreshold(variable.getName(), variable.getLastOverThreshold());
-
-      List<String> emails = variable.getCustomerAlertList()
+      variable.getCustomerAlertList()
           .stream()
           .filter(x -> x.getLastNotified() == null || x.getLastNotified().isBefore(ZonedDateTime
-              .now().minusMinutes(ALERT_FREQUENCY)))
+              .now().minusMinutes(metaSettingsService.getMailFrequency())))
           .filter(x -> StringUtils.hasText(x.getEmail()))
           .map(x -> {
             x.setLastNotified(ZonedDateTime.now());
             customerAlertsMapper.updateLastNotified(x.getId(), x.getLastNotified());
             return x.getEmail();
           })
-          .toList();
+          .forEach(emails::add);
+
+
       if (!emails.isEmpty()) {
         log.info("Sending email to " + emails);
-        String message = String.format(ALERT_MESSAGE, variable.getName(), interpreter.get(variable.getName()),
-            variable.getLastOverThreshold(), variable.getMinThreshold(), variable.getMaxThreshold());
+        String message = String.format(ALERT_MESSAGE, variable.getName(),
+            interpreter.get(variable.getName()),
+            variable.getLastOverThreshold(), variable.getMinThreshold(),
+            variable.getMaxThreshold());
         mailService.sendWarningMails(emails, message);
       }
     }

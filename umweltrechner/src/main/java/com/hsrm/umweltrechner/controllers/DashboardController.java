@@ -1,5 +1,7 @@
 package com.hsrm.umweltrechner.controllers;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +37,7 @@ public class DashboardController {
     return dashboardPageService.getAllDashboards();
   }
 
-  @PostMapping
+  @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('admin')")
   public DtoDashboard addDashboard(@RequestBody DtoDashboard dashboard) {
     Preconditions.checkNotNull(dashboard);
@@ -50,7 +52,7 @@ public class DashboardController {
     dashboardPageService.deleteDashboard(id);
   }
 
-  @PutMapping("/{id}")
+  @PutMapping(value = "/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('admin')")
   public DtoDashboard updateDashboard(@PathVariable("id") String id,
       @RequestBody DtoDashboardUpdate dashboard) {
@@ -59,12 +61,13 @@ public class DashboardController {
   }
 
 
-  @GetMapping("/components")
+  @GetMapping(value = "/components", produces = APPLICATION_JSON_VALUE)
   public List<DashboardComponent> getDashboardComponents() {
     return dashboardComponentService.getDashboardComponents();
   }
 
-  @PostMapping("/components")
+  @PostMapping(value = "/components", consumes = APPLICATION_JSON_VALUE, produces =
+      APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('admin')")
   public DtoDashboardComponent addComponent(@RequestBody DtoDashboardComponent dtoDashboardComponent) {
     return dashboardComponentService.addComponent(dtoDashboardComponent);
@@ -76,7 +79,8 @@ public class DashboardController {
     dashboardComponentService.deleteComponent(id);
   }
 
-  @PutMapping("/components/{id}")
+  @PutMapping(value = "/components/{id}", consumes = APPLICATION_JSON_VALUE, produces =
+      APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('admin')")
   public DtoDashboardComponent updateComponent(@PathVariable("id") String id,
       @RequestBody DtoDashboardComponent component) {

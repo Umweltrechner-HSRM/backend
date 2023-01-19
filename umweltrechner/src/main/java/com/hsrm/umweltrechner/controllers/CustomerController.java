@@ -1,5 +1,7 @@
 package com.hsrm.umweltrechner.controllers;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +20,7 @@ public class CustomerController {
   @Autowired
   private KeycloakClient keycloakClient;
 
-  @GetMapping
+  @GetMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('admin')")
   public List<DtoKeycloakUser> getUsers() {
     return keycloakClient.getAllUsers();

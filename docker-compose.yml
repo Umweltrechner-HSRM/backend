@@ -50,7 +50,7 @@ services:
   keycloak:
     build:
       context: ./keycloak
-      dockerfile: keycloak/Dockerfile.local
+      dockerfile: Dockerfile.local
     container_name: keycloak
     depends_on:
       - postgres

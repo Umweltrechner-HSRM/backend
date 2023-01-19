@@ -51,7 +51,7 @@ services:
   keycloak:
     build:
       context: ./keycloak
-      dockerfile: keycloak/Dockerfile
+      dockerfile: Dockerfile
     container_name: keycloak
     depends_on:
       - postgres

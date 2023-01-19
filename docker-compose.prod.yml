@@ -8,8 +8,8 @@ services:
     container_name: umweltrechner
     depends_on:
       - mysql
-      - keycloak-mysql
       - keycloak
+      - postgres
     ports:
       - "8230:8230"
     networks:
@@ -35,51 +35,48 @@ services:
     networks:
       - umweltrechner
 
-  keycloak-mysql:
-    image: mysql:8.0
-    container_name: keycloak-mysql
-    restart: unless-stopped
+  postgres:
+    image: postgres:latest
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: keycloak
-      MYSQL_USER: keycloak
-      MYSQL_PASSWORD: password
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=password
     volumes:
-      - /keycloak:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "3320:3320"
+      - "5432:5432"
     networks:
       - umweltrechner
 
   keycloak:
-    image: jboss/keycloak
+    build:
+      context: ./keycloak
+      dockerfile: keycloak/Dockerfile
     container_name: keycloak
     depends_on:
-      - keycloak-mysql
-    restart: unless-stopped
+      - postgres
     environment:
-      KEYCLOAK_FRONTEND_URL: https://keycloak.sensorguard.systems/auth
-      DB_VENDOR: MYSQL
-      DB_ADDR: keycloak-mysql
-      DB_DATABASE: keycloak
-      DB_USER: keycloak
-      DB_PASSWORD: password
-      KEYCLOAK_USER: prod
-      KEYCLOAK_PASSWORD: prod
-      PROXY_ADDRESS_FORWARDING: true
-      REDIRECT_SOCKET: "proxy-https"
+        - KEYCLOAK_FRONTEND_URL=https://keycloak.sensorguard.systems/auth
+        - KEYCLOAK_ADMIN=keycloak
+        - KEYCLOAK_ADMIN_PASSWORD=password
+        - KC_LOG_LEVEL=INFO
+        - KC_DB=postgres
+        - KC_DB_URL_HOST=postgres
+        - KC_DB_URL_PORT=5432
+        - KC_DB_URL_DATABASE=postgres
+        - KC_DB_USERNAME=keycloak
+        - KC_DB_PASSWORD=password
+        - PROXY_ADDRESS_FORWARDING=true
+        - REDIRECT_SOCKET="proxy-https"
     ports:
       - "8080:8080"
-    volumes:
-      - ./keycloak/export-prod:/tmp/export/
-    command:
-      - "-Dkeycloak.migration.provider=dir"
-      - "-Dkeycloak.migration.action=import"
-      - "-Dkeycloak.migration.dir=/tmp/export/"
-      - "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
-      - "-Dkeycloak.profile.feature.upload_scripts=enabled"
     networks:
       - umweltrechner
 
 networks:
   umweltrechner:
+
+
+volumes:
+  postgres_data:
+    driver: local

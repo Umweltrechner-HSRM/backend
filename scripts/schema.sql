@@ -15,22 +15,22 @@ create table if not exists umweltrechner.formula
 
 create table if not exists umweltrechner.variable
 (
-    name          varchar(255) not null
+    name                varchar(255) not null
         primary key,
-    min_threshold double       null,
-    max_threshold double       null,
+    min_threshold       double       null,
+    max_threshold       double       null,
     last_over_threshold timestamp(3) null
 );
 
 create table if not exists umweltrechner.sensor
 (
-    name            varchar(100)  not null
+    name        varchar(100) not null
         primary key,
-    location        varchar(100)  null,
-    description     varchar(500)  null,
-    value           double        null,
-    unit            varchar(36)   null,
-    created_at      timestamp     null
+    location    varchar(100) null,
+    description varchar(500) null,
+    value       double       null,
+    unit        varchar(36)  null,
+    created_at  timestamp    null
 );
 
 create table if not exists umweltrechner.customer_alerts
@@ -86,3 +86,14 @@ create table if not exists umweltrechner.dashboard_page
         foreign key (dashboard_id) references dashboard (id)
             on delete cascade
 );
+
+create table if not exists umweltrechner.meta_settings
+(
+    name  varchar(36)  not null
+        primary key,
+    value varchar(100) not null
+);
+
+insert ignore into umweltrechner.meta_settings (name, value)
+values ('DEFAULT_MAIL', ''),
+       ('MAIL_FREQUENCY', '900');

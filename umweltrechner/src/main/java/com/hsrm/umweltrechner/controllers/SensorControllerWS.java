@@ -47,10 +47,7 @@ public class SensorControllerWS {
   public void scheduledVariables() {
     formulaInterpreterService.calculateAndGetVariables()
         .parallelStream()
-        .forEach((x) -> {
-      template.convertAndSend("/topic/" + x.getVariableName(), x);
-      log.info("Sending variable: " + x);
-    });
+        .forEach((x) -> template.convertAndSend("/topic/" + x.getVariableName(), x));
   }
 
 }

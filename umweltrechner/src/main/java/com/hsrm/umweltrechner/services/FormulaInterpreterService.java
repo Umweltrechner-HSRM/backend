@@ -19,9 +19,8 @@ import com.hsrm.umweltrechner.dao.mapper.SensorMapper;
 import com.hsrm.umweltrechner.dao.mapper.VariableMapper;
 import com.hsrm.umweltrechner.dao.model.Formula;
 import com.hsrm.umweltrechner.dao.model.Variable;
+import com.hsrm.umweltrechner.dao.model.types.VariableType;
 import com.hsrm.umweltrechner.dto.DtoVariableData;
-import com.hsrm.umweltrechner.syntax.Interpreter;
-import com.hsrm.umweltrechner.syntax.SymbolTable;
 import com.hsrm.umweltrechner.exceptions.interpreter.DivideByZeroException;
 import com.hsrm.umweltrechner.exceptions.interpreter.DomainException;
 import com.hsrm.umweltrechner.exceptions.interpreter.IllegalWriteException;
@@ -29,6 +28,8 @@ import com.hsrm.umweltrechner.exceptions.interpreter.IncorrectSyntaxException;
 import com.hsrm.umweltrechner.exceptions.interpreter.InvalidSymbolException;
 import com.hsrm.umweltrechner.exceptions.interpreter.OutOfRangeException;
 import com.hsrm.umweltrechner.exceptions.interpreter.UnknownSymbolException;
+import com.hsrm.umweltrechner.syntax.Interpreter;
+import com.hsrm.umweltrechner.syntax.SymbolTable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -80,9 +81,9 @@ public class FormulaInterpreterService {
     List<Formula> formulas = formulaMapper.selectAll();
 
 
-    for(int i = 0; i < formulas.size(); i++) {
+    for (int i = 0; i < formulas.size(); i++) {
       String slice =
-          formulas.stream().limit(i+1).map(Formula::getFormula).collect(Collectors.joining("\n"));
+          formulas.stream().limit(i + 1).map(Formula::getFormula).collect(Collectors.joining("\n"));
       try {
         interpreter.checkSyntax(slice);
         interpreter.setEquations(slice);
@@ -93,21 +94,26 @@ public class FormulaInterpreterService {
       }
     }
 
-    List<String> variables = interpreter.getVariables().keySet().stream().toList();
+    HashMap<String, SymbolTable.SymbolEntry> variables = interpreter.getVariablesWithFlag();
     List<Variable> variablesFromTable = variablesMapper.selectAll();
     List<String> nameOfVariablesInTable = new ArrayList<>();
 
-    for (var variableFromTable : variablesFromTable) {
+    for (Variable variableFromTable : variablesFromTable) {
       nameOfVariablesInTable.add(variableFromTable.getName());
     }
-    for (var variable : variables) {
+    for (String variable : variables.keySet()) {
       if (!nameOfVariablesInTable.contains(variable)) {
         variablesMapper.insert(
-            Variable.builder().name(variable).maxThreshold(null).minThreshold(null).build());
+            Variable.builder()
+                .name(variable)
+                .maxThreshold(null)
+                .minThreshold(null)
+                .type(variables.get(variable).isReadOnly() ? VariableType.SENSOR : VariableType.FORMULA)
+                .build());
       }
     }
     for (var variable : nameOfVariablesInTable) {
-      if (!variables.contains(variable)) {
+      if (!variables.containsKey(variable)) {
         variablesMapper.deleteByName(variable);
       }
     }
@@ -147,7 +153,6 @@ public class FormulaInterpreterService {
     });
     return result;
   }
-
 
 
   public void checkSyntax(String formula) throws DivideByZeroException, DomainException,

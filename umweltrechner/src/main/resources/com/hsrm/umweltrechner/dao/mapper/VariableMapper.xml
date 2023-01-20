@@ -7,6 +7,7 @@
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="min_threshold" jdbcType="DOUBLE" property="minThreshold"/>
         <result column="max_threshold" jdbcType="DOUBLE" property="maxThreshold"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
         <result column="last_over_threshold" jdbcType="DOUBLE" property="lastOverThreshold"/>
     </resultMap>
 
@@ -14,6 +15,7 @@
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="min_threshold" jdbcType="DOUBLE" property="minThreshold"/>
         <result column="max_threshold" jdbcType="DOUBLE" property="maxThreshold"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
         <result column="last_over_threshold" jdbcType="DOUBLE" property="lastOverThreshold"/>
         <collection property="customerAlertList" ofType="com.hsrm.umweltrechner.dto.DtoCustomerAlert">
             <result column="id" jdbcType="INTEGER" property="id"/>
@@ -25,9 +27,9 @@
     </resultMap>
 
 
-    <insert id="insert">
-        INSERT INTO variable (name, min_threshold, max_threshold)
-        VALUES (#{name,jdbcType=VARCHAR}, #{minThreshold,jdbcType=DOUBLE}, #{maxThreshold,jdbcType=DOUBLE})
+    <insert id="insert" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
+        INSERT INTO variable (name, min_threshold, max_threshold, type)
+        VALUES (#{name,jdbcType=VARCHAR}, #{minThreshold,jdbcType=DOUBLE}, #{maxThreshold,jdbcType=DOUBLE}, #{type,jdbcType=VARCHAR})
     </insert>
 
     <delete id="deleteByName" parameterType="com.hsrm.umweltrechner.dao.model.Variable">
@@ -37,7 +39,7 @@
     </delete>
 
     <select id="selectAll" resultMap="BaseResultMap">
-        SELECT name, min_threshold, max_threshold, last_over_threshold
+        SELECT name, min_threshold, max_threshold, type, last_over_threshold
         FROM variable
     </select>
 
@@ -45,6 +47,7 @@
         SELECT v.name,
                v.min_threshold,
                v.max_threshold,
+               v.type,
                v.last_over_threshold,
                ca.id,
                ca.variable_name,
@@ -60,6 +63,7 @@
                v.min_threshold,
                v.max_threshold,
                v.last_over_threshold,
+               v.type,
                ca.id,
                ca.variable_name,
                ca.phone_number,

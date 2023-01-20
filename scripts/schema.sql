@@ -19,6 +19,7 @@ create table if not exists umweltrechner.variable
         primary key,
     min_threshold       double       null,
     max_threshold       double       null,
+    type                varchar(36)  not null,
     last_over_threshold timestamp(3) null
 );
 

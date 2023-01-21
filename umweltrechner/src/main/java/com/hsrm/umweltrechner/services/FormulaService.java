@@ -41,13 +41,20 @@ public class FormulaService {
     formulaInterpreterService.checkSyntax(formula);
   }
 
+  public void deleteFormula(String formulaId) throws NotFoundException {
+    int deleted = formulaMapper.delete(formulaId);
+    if (deleted == 1) {
+      formulaInterpreterService.syncFormulaSystem();
+    }
+  }
+
   public Formula addFormula(DtoFormula formula) {
     Formula f = new Formula();
     f.setFormula(formula.getFormula());
     f.generateId();
     f.prepareInsert();
     formulaMapper.insert(f);
-    formulaInterpreterService.init();
+    formulaInterpreterService.syncFormulaSystem();
     return f;
   }
 
@@ -55,7 +62,9 @@ public class FormulaService {
     return formulaMapper.selectAll();
   }
 
-  public Formula updateFormula(String formulaId, DtoFormula formula) throws DivideByZeroException, DomainException, UnknownSymbolException, IllegalWriteException, IncorrectSyntaxException, OutOfRangeException {
+  public Formula updateFormula(String formulaId, DtoFormula formula) throws DivideByZeroException
+      , DomainException, UnknownSymbolException, IllegalWriteException, IncorrectSyntaxException,
+      OutOfRangeException {
     Formula oldFormula = formulaMapper.selectById(formulaId);
     if (oldFormula == null) {
       throw new NotFoundException("Formula not found");
@@ -64,7 +73,7 @@ public class FormulaService {
     oldFormula.setFormula(formula.getFormula());
     oldFormula.prepareUpdate();
     formulaMapper.update(oldFormula);
-    formulaInterpreterService.init();
+    formulaInterpreterService.syncFormulaSystem();
     return oldFormula;
   }
 }

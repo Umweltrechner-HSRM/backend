@@ -21,11 +21,15 @@
                 #{changedAt,jdbcType=TIMESTAMP},
                 #{changedBy,jdbcType=VARCHAR})
     </insert>
+    <delete id="delete">
+        DELETE FROM formula
+        WHERE id = #{id,jdbcType=VARCHAR}
+    </delete>
 
     <select id="selectAll" resultMap="BaseResultMap">
         SELECT id, formula, created_at, created_by, changed_at, changed_by
         from formula
-        order by created_at desc
+        order by created_at
     </select>
 
     <select id="selectById" resultMap="BaseResultMap">

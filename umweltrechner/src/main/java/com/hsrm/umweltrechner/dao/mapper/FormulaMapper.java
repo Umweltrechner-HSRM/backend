@@ -17,4 +17,6 @@ public interface FormulaMapper {
   int update(Formula f);
 
   Formula selectById(@Param("id") String formulaId);
+
+  int delete(String id);
 }

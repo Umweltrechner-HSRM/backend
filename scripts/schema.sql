@@ -83,3 +83,10 @@ create table if not exists umweltrechner.dashboard_page
         foreign key (dashboard_id) references dashboard (id)
             on delete cascade
 );
+
+create table if not exists umweltrechner.history
+(
+    variableName    varchar(255)  not null,
+    value           double        null,
+    timestamp       bigint        not null
+);

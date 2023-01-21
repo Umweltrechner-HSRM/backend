@@ -1,6 +1,10 @@
 package com.hsrm.umweltrechner.controllers;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.hsrm.umweltrechner.services.HistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -28,6 +32,11 @@ public class SensorControllerWS {
   @Autowired
   FormulaInterpreterService formulaInterpreterService;
 
+  @Autowired
+  HistoryService historyService;
+
+  // Queue
+  List<DtoVariableData> variableDataList = new ArrayList<>();
 
   @MessageMapping("/{sensor}")
   public void sendTemperature(@DestinationVariable("sensor") String sensor,
@@ -48,9 +57,19 @@ public class SensorControllerWS {
     formulaInterpreterService.calculateAndGetVariables()
         .parallelStream()
         .forEach((x) -> {
-      template.convertAndSend("/topic/" + x.getVariableName(), x);
-      log.info("Sending variable: " + x);
-    });
+          if (variableDataList.size() == 20){
+            for (DtoVariableData variableData : variableDataList){
+              historyService.insertVariable(variableData);
+            }
+            log.info("Added batch into history table, emptiying queue");
+            variableDataList = new ArrayList<>();
+          } else {
+            variableDataList.add(x);
+          }
+
+          template.convertAndSend("/topic/" + x.getVariableName(), x);
+          log.info("Sending variable: " + x);
+        });
   }
 
 }

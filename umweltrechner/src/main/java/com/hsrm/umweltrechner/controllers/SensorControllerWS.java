@@ -63,7 +63,7 @@ public class SensorControllerWS {
             }
             log.info("Added batch into history table, emptiying queue");
             variableDataList = new ArrayList<>();
-          } else {
+          } else if(!variableDataList.contains(x)) {
             variableDataList.add(x);
           }
 

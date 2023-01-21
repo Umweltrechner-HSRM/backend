@@ -3,6 +3,8 @@ package com.hsrm.umweltrechner.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import com.hsrm.umweltrechner.services.HistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +37,6 @@ public class SensorControllerWS {
   @Autowired
   HistoryService historyService;
 
-  // Queue
-  List<DtoVariableData> variableDataList = new ArrayList<>();
-
   @MessageMapping("/{sensor}")
   public void sendTemperature(@DestinationVariable("sensor") String sensor,
       DtoVariableData sensorData) throws OutOfRangeException, InvalidSymbolException {
@@ -55,18 +54,8 @@ public class SensorControllerWS {
   @Scheduled(fixedRateString = "${scheduler.rate}")
   public void scheduledVariables() {
     formulaInterpreterService.calculateAndGetVariables()
-        .parallelStream()
         .forEach((x) -> {
-          if (variableDataList.size() == 20){
-            for (DtoVariableData variableData : variableDataList){
-              historyService.insertVariable(variableData);
-            }
-            log.info("Added batch into history table, emptiying queue");
-            variableDataList = new ArrayList<>();
-          } else if(!variableDataList.contains(x)) {
-            variableDataList.add(x);
-          }
-
+          historyService.addItem(x);
           template.convertAndSend("/topic/" + x.getVariableName(), x);
           log.info("Sending variable: " + x);
         });

@@ -3,8 +3,28 @@
 <mapper namespace="com.hsrm.umweltrechner.dao.mapper.HistoryMapper">
   <cache readOnly="true"/>
 
+  <resultMap id="BaseResultMap" type="com.hsrm.umweltrechner.dao.model.History">
+    <result column="variableName" jdbcType="VARCHAR" property="variableName"/>
+    <result column="value" jdbcType="DOUBLE" property="value"/>
+    <result column="timestamp" jdbcType="BIGINT" property="timestamp"/>
+  </resultMap>
+
   <insert id="insert">
     INSERT INTO history (variableName, value, timestamp)
     VALUES (#{variableName,jdbcType=VARCHAR}, #{value,jdbcType=DOUBLE}, #{timestamp,jdbcType=BIGINT})
   </insert>
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    SELECT *
+    FROM history
+    ORDER BY timestamp DESC
+  </select>
+
+  <select id="selectAllByName" resultMap="BaseResultMap">
+    SELECT *
+    FROM history
+    WHERE variableName = #{variableName,jdbcType=VARCHAR}
+    ORDER BY timestamp DESC
+  </select>
+
 </mapper>

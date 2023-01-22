@@ -104,5 +104,6 @@ create table if not exists umweltrechner.history
 (
     variableName    varchar(255)  not null,
     value           double        null,
-    timestamp       bigint        not null
+    timestamp       bigint        not null,
+    PRIMARY KEY (variableName, timestamp)
 );

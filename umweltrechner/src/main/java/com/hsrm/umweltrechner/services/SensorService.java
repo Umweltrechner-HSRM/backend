@@ -3,6 +3,7 @@ package com.hsrm.umweltrechner.services;
 
 import java.util.List;
 
+import com.hsrm.umweltrechner.dao.model.types.VariableType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +41,7 @@ public class SensorService {
     sensorMapper.insert(sensor);
     formulaInterpreterService.registerSensor(sensor.getName(), 0.0);
     variableMapper.insert(
-        Variable.builder().name(sensor.getName()).maxThreshold(null).minThreshold(null).build());
+        Variable.builder().name(sensor.getName()).maxThreshold(null).minThreshold(null).type(VariableType.SENSOR).build());
     return sensor;
   }
 

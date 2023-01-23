@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 public class MyBatisConfig {
 
     @Bean
-    public MapperScannerConfigurer mapperScannerConfigurer() {
+    public static MapperScannerConfigurer mapperScannerConfigurer() {
         MapperScannerConfigurer mapperScannerConfigurer = new MapperScannerConfigurer();
         mapperScannerConfigurer.setBasePackage("com.hsrm.umweltrechner.dao.mapper");
         return mapperScannerConfigurer;

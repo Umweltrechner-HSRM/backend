@@ -20,14 +20,19 @@ public class HistoryController {
   HistoryService historyService;
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public List<History> getHistory(){
-    return historyService.findAllHistoryData();
+  public List<History> getHistoryWithLimit(
+      @RequestParam(required = true) long start,
+      @RequestParam(required = true) long end
+  ){
+    return historyService.findAllHistoryDataWithLimit(start, end);
   }
 
   @GetMapping(path = "/getByName", produces = APPLICATION_JSON_VALUE)
   public List<History> getAllByName(
-      @RequestParam String variableName
+      @RequestParam(required = true) String variableName,
+      @RequestParam(required = true) Long start,
+      @RequestParam(required = true) Long end
   ){
-    return historyService.getAllByName(variableName);
+    return historyService.getAllByName(variableName, start, end);
   }
 }

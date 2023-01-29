@@ -9,7 +9,6 @@ import com.hsrm.umweltrechner.dao.model.History;
 import com.hsrm.umweltrechner.dto.DtoVariableData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -42,12 +41,14 @@ public class HistoryService {
     log.info("queue size to small");
   }
 
-  public List<History> findAllHistoryData(){
-    return historyMapper.selectAll();
+  public List<History> findAllHistoryDataWithLimit(long start, long end){
+    return historyMapper.selectAll(start, end);
   }
 
-  public List<History> getAllByName(String variableName){
-    return historyMapper.selectAllByName(variableName);
+  public List<History> getAllByName(String variableName, long start, long end){
+    return historyMapper.selectAllByName(variableName, start, end);
   }
+
+
 
 }

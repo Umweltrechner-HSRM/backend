@@ -17,14 +17,16 @@
   <select id="selectAll" resultMap="BaseResultMap">
     SELECT *
     FROM history
-    ORDER BY timestamp DESC
+    ORDER BY timestamp ASC
+    LIMIT #{start,jdbcType=BIGINT}, #{end,jdbcType=BIGINT}
   </select>
 
   <select id="selectAllByName" resultMap="BaseResultMap">
     SELECT *
     FROM history
     WHERE variableName = #{variableName,jdbcType=VARCHAR}
-    ORDER BY timestamp DESC
+    ORDER BY timestamp ASC
+    LIMIT #{start,jdbcType=BIGINT}, #{end,jdbcType=BIGINT}
   </select>
 
 </mapper>

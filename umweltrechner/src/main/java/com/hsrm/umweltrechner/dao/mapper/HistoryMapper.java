@@ -11,7 +11,7 @@ public interface HistoryMapper {
 
   int insert(DtoVariableData dtoVariableData);
 
-  List<History> selectAll();
+  List<History> selectAll(long start, long end);
 
-  List<History> selectAllByName(String variableName);
+  List<History> selectAllByName(String variableName, long start, long end);
 }

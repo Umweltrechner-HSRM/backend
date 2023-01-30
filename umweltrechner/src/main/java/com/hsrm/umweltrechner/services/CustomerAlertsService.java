@@ -93,8 +93,8 @@ public class CustomerAlertsService {
   }
 
   private static boolean isOverThreshold(Double value, Double min, Double max) {
-    boolean isDanger = min != null && value <= min;
-    if (max != null && value >= max) {
+    boolean isDanger = min != null && value < min;
+    if (max != null && value > max) {
       isDanger = true;
     }
     return isDanger;

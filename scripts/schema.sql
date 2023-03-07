@@ -98,3 +98,12 @@ create table if not exists umweltrechner.meta_settings
 insert ignore into umweltrechner.meta_settings (name, value)
 values ('DEFAULT_MAIL', ''),
        ('MAIL_FREQUENCY', '900');
+
+
+create table if not exists umweltrechner.history
+(
+    variableName    varchar(255)  not null,
+    value           double        null,
+    timestamp       bigint        not null,
+    PRIMARY KEY (variableName, timestamp)
+);

@@ -1,6 +1,12 @@
 package com.hsrm.umweltrechner.controllers;
 
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
+
+import com.hsrm.umweltrechner.services.HistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -28,6 +34,8 @@ public class SensorControllerWS {
   @Autowired
   FormulaInterpreterService formulaInterpreterService;
 
+  @Autowired
+  HistoryService historyService;
 
   @MessageMapping("/{sensor}")
   public void sendTemperature(@DestinationVariable("sensor") String sensor,
@@ -46,8 +54,11 @@ public class SensorControllerWS {
   @Scheduled(fixedRateString = "${scheduler.rate}")
   public void scheduledVariables() {
     formulaInterpreterService.calculateAndGetVariables()
-        .parallelStream()
-        .forEach((x) -> template.convertAndSend("/topic/" + x.getVariableName(), x));
+        .forEach((x) -> {
+          historyService.addItem(x);
+          template.convertAndSend("/topic/" + x.getVariableName(), x);
+          log.info("Sending variable: " + x);
+        });
   }
 
 }

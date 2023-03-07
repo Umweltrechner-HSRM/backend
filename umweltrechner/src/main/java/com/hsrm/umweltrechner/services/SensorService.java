@@ -3,6 +3,7 @@ package com.hsrm.umweltrechner.services;
 
 import java.util.List;
 
+import com.hsrm.umweltrechner.dao.model.types.VariableType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
